@@ -6,7 +6,7 @@ namespace RadpidOCRCSharpOnnx.Config
 {
     public static class RecConfig
     {
-        public static string LangType = "ch";
+        public static string LangType  = "ch";
         public static string ModelType = "mobile";
         public static string OcrVersion = "PP-OCRv4";
         public static string ModelPath = "";

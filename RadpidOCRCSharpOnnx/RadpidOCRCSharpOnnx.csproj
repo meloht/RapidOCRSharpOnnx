@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.24.3" />
     <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260308" />
     <PackageReference Include="OpenCvSharp4.Extensions" Version="4.13.0.20260308" />
   </ItemGroup>
