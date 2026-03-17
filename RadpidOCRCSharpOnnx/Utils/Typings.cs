@@ -76,4 +76,10 @@ namespace RadpidOCRCSharpOnnx.Utils
         Min,
         Max
     }
+
+    public enum Direction
+    {
+        HORIZONTAL,
+        VERTICAL
+    }
 }

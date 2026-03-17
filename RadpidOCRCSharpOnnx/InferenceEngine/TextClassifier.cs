@@ -1,8 +1,10 @@
 ﻿using Microsoft.ML.OnnxRuntime;
+using Microsoft.ML.OnnxRuntime.Tensors;
 using OpenCvSharp;
 using RadpidOCRCSharpOnnx.Config;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -36,6 +38,11 @@ namespace RadpidOCRCSharpOnnx.InferenceEngine
 
             Array.Sort(indices, (a, b) => widthList[a].CompareTo(widthList[b]));
             int imgCount = imgList.Length;
+            ClsResult[] cls_res = new ClsResult[imgCount];
+            for (int i = 0; i < imgCount; i++)
+            {
+                cls_res[i] = new ClsResult("", 0.0f);
+            }
 
             int idx = 0;
             for (int i = 0; i < imgCount; i += ClsConfig.ClsBatchNum)
@@ -55,14 +62,53 @@ namespace RadpidOCRCSharpOnnx.InferenceEngine
                 }
                 var input = new DataTensorDimensions(batchData, new long[] { batchSize, 3, ClsConfig.ClsImageShape[1], ClsConfig.ClsImageShape[2] });
                 using var outData = _session.RunInference(input);
-
+                var clsResults = ClsPostProcess(outData);
+                for (int j = 0; j < clsResults.Length; j++)
+                {
+                    cls_res[indices[i + j]].Label = clsResults[j].Label;
+                    cls_res[indices[i + j]].Score = clsResults[j].Score;
+                    if (clsResults[j].Label == "180" && clsResults[j].Score > ClsConfig.ClsThresh)
+                    {
+                        Cv2.Rotate(imgList[indices[i + j]], imgList[indices[i + j]], RotateFlags.Rotate180);
+                    }
+                }
 
             }
         }
 
-        public void ClsPostProcess()
+        public ClsResult[] ClsPostProcess(OrtValue ortValue)
         {
-            
+
+            var shapeInfo = ortValue.GetTensorTypeAndShape();
+            int batchSize = (int)shapeInfo.Shape[0];
+            int numClasses = (int)shapeInfo.Shape[1];
+
+            var data = ortValue.GetTensorDataAsSpan<float>();
+            if (data.Length != batchSize * numClasses)
+                throw new InvalidOperationException("Data length mismatch.");
+
+            ClsResult[] results = new ClsResult[batchSize];
+
+            int rowStart = 0;
+            int maxIdx = 0;
+            for (int i = 0; i < batchSize; i++)
+            {
+                rowStart = i * numClasses;
+                maxIdx = 0;
+                float maxVal = data[rowStart];
+
+                for (int j = 1; j < numClasses; j++)
+                {
+                    float val = data[rowStart + j];
+                    if (val > maxVal)
+                    {
+                        maxVal = val;
+                        maxIdx = j;
+                    }
+                }
+                results[i] = new ClsResult(ClsConfig.LabelList[maxIdx], maxVal);
+            }
+            return results;
         }
 
         public int ResizeNormImg(Mat img, int idx, float[] inputData)
