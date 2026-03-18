@@ -82,4 +82,12 @@ namespace RadpidOCRCSharpOnnx.Utils
         HORIZONTAL,
         VERTICAL
     }
+
+    public enum WordType
+    {
+        CN,
+        EN,
+        NUM,
+        EN_NUM
+    }
 }

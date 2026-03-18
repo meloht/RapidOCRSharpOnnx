@@ -1,6 +1,7 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using OpenCvSharp;
 using RadpidOCRCSharpOnnx.Config;
+using RadpidOCRCSharpOnnx.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -135,7 +136,7 @@ namespace RadpidOCRCSharpOnnx.InferenceEngine
             return idx;
         }
 
-        public void RecPostProcess(OrtValue ortValue)
+        public InferenceResult[] RecPostProcess(OrtValue ortValue)
         {
             var shapeInfo = ortValue.GetTensorTypeAndShape();
             int batchSize = (int)shapeInfo.Shape[0];
@@ -146,12 +147,164 @@ namespace RadpidOCRCSharpOnnx.InferenceEngine
 
             var maxIndexAndValue = GetMaxIndexAndValue(data, batchSize, tNum, numClasses);
             int[] ignored_tokens = getIgnoredTokens();
+
+            InferenceResult[] results = new InferenceResult[batchSize];
             for (int i = 0; i < batchSize; i++)
             {
                 int[] token_indices = maxIndexAndValue.Indices[i];
-                bool[] selection = new bool[token_indices.Length];
-                Array.Fill(selection, true);
+                bool[] selection = GetSelection(token_indices);
+
+                var confList = GetConfList(maxIndexAndValue.Values, i, selection);
+
+                string text = GetCharList(token_indices);
+                float avgConf = (float)Math.Round(confList.Average(), 5);
+
+                results[i] = new InferenceResult(text, avgConf);
             }
+            return results;
+
+        }
+
+        private WordInfo GetWordInfo(string text, bool[] selection)
+        {
+            var validCol = new List<int>();
+            for (int i = 0; i < selection.Length; i++)
+            {
+                if (selection[i])
+                    validCol.Add(i);
+            }
+            if (validCol.Count == 0)
+                return new WordInfo(); // 无有效字符
+
+            float[] colWidth = new float[validCol.Count];
+            for (int i = 1; i < validCol.Count; i++)
+            {
+                colWidth[i] = validCol[i] - validCol[i - 1];
+            }
+
+            int firstColValue = validCol[0];
+            int minVal = text.Length > 0 && UtilsHelper.IsChineseChar(text[0]) ? 3 : 2;
+            colWidth[0] = Math.Min(minVal, firstColValue);
+
+            var wordList = new List<List<char>>();
+            var wordColList = new List<List<int>>();
+            var stateList = new List<WordType>();
+
+            var wordContent = new List<char>();
+            var wordColContent = new List<int>();
+
+            WordType? state = null;
+            for (int cIdx = 0; cIdx < text.Length; cIdx++)
+            {
+                char ch = text[cIdx];
+
+                // 处理空白字符：结束当前单词
+                if (char.IsWhiteSpace(ch))
+                {
+                    if (wordContent.Count > 0)
+                    {
+                        wordList.Add(new List<char>(wordContent));
+                        wordColList.Add(new List<int>(wordColContent));
+                        stateList.Add(state!.Value);
+                        wordContent.Clear();
+                        wordColContent.Clear();
+                    }
+                    continue;
+                }
+
+                // 判断当前字符类型
+                WordType cState = UtilsHelper.IsChineseChar(ch) ? WordType.CN : WordType.EN_NUM;
+                if (state == null)
+                    state = cState;
+
+                // 类型变化或列宽过大（>5）时切分单词
+                if (state != cState || colWidth[cIdx] > 5)
+                {
+                    if (wordContent.Count > 0)
+                    {
+                        wordList.Add(new List<char>(wordContent));
+                        wordColList.Add(new List<int>(wordColContent));
+                        stateList.Add(state.Value);
+                        wordContent.Clear();
+                        wordColContent.Clear();
+                    }
+                    state = cState;
+                }
+
+                // 将当前字符加入正在构建的单词
+                wordContent.Add(ch);
+                wordColContent.Add(validCol[cIdx]);
+            }
+
+            // 处理最后一个单词
+            if (wordContent.Count > 0)
+            {
+                wordList.Add(wordContent);
+                wordColList.Add(wordColContent);
+                stateList.Add(state!.Value);
+            }
+
+            return new WordInfo(wordList, wordColList, stateList);
+
+        }
+
+        private string GetCharList(int[] tokenIndices)
+        {
+            StringBuilder txt = new StringBuilder();
+            for (int i = 0; i < tokenIndices.Length; i++)
+            {
+                txt.Append(_charList[tokenIndices[i]]);
+            }
+            return txt.ToString();
+        }
+
+        private bool[] GetSelection(int[] token_indices)
+        {
+            bool[] selection = new bool[token_indices.Length];
+            Array.Fill(selection, true);
+
+            for (int ii = 1; ii < token_indices.Length; ii++)
+            {
+                selection[ii] = token_indices[ii] != token_indices[ii - 1];
+            }
+            int[] ignored_tokens = getIgnoredTokens();
+            foreach (int ignored in ignored_tokens)
+            {
+                for (int i = 0; i < token_indices.Length; i++)
+                {
+                    selection[i] = selection[i] && (token_indices[i] != ignored);
+                }
+            }
+
+            return selection;
+        }
+
+        private List<float> GetConfList(float[][] values, int batchIdx, bool[] selection)
+        {
+            // 获取置信度列表
+            List<float> confList;
+            if (values != null)
+            {
+                confList = new List<float>();
+                for (int i = 0; i < values.Length; i++)
+                {
+                    if (selection[i])
+                        confList.Add(values[batchIdx][i]);
+                }
+                // 四舍五入到5位小数
+                confList = confList.Select(c => (float)Math.Round(c, 5)).ToList();
+            }
+            else
+            {
+                float[] arr = new float[selection.Length];
+                Array.Fill(arr, 1f);
+                confList = arr.ToList();
+            }
+
+            if (confList.Count == 0)
+                confList = new List<float> { 0f };
+
+            return confList;
         }
 
         public ValueTuplePairArray GetMaxIndexAndValue(ReadOnlySpan<float> data, int batchSize, int tNum, int numClasses)

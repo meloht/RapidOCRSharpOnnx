@@ -6,7 +6,7 @@ using System.Text;
 
 namespace RadpidOCRCSharpOnnx.Utils
 {
-    public static class Utils
+    public static class UtilsHelper
     {
         public static void MakeDir(string dirPath)
         {
