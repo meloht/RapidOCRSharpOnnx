@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RadpidOCRCSharpOnnx\RadpidOCRCSharpOnnx.csproj" />
+    <ProjectReference Include="..\RadpidOCRCSharpOnnx\RapidOCRCSharpOnnx.csproj" />
   </ItemGroup>
 
 </Project>

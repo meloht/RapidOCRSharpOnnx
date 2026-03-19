@@ -3,13 +3,13 @@
     <Platform Name="Any CPU" />
     <Platform Name="x64" />
   </Configurations>
-  <Project Path="RadpidOCRCSharpOnnx.Console/RadpidOCRCSharpOnnx.ConsoleApp.csproj">
+  <Project Path="RadpidOCRCSharpOnnx.Console/RapidOCRCSharpOnnx.ConsoleApp.csproj">
     <Platform Solution="*|x64" Project="x64" />
   </Project>
-  <Project Path="RadpidOCRCSharpOnnx.Test/RadpidOCRCSharpOnnx.Test.csproj">
+  <Project Path="RadpidOCRCSharpOnnx.Test/RapidOCRCSharpOnnx.Test.csproj">
     <Platform Solution="*|x64" Project="x64" />
   </Project>
-  <Project Path="RadpidOCRCSharpOnnx/RadpidOCRCSharpOnnx.csproj">
+  <Project Path="RadpidOCRCSharpOnnx/RapidOCRCSharpOnnx.csproj">
     <Platform Solution="*|x64" Project="x64" />
   </Project>
 </Solution>
