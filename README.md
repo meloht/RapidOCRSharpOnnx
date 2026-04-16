@@ -1,1 +1,1 @@
-# RapidOCRCSharpOnnx
+# RapidOCRSharpOnnx
