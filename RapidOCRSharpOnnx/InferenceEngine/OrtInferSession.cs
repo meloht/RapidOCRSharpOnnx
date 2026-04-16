@@ -1,12 +1,12 @@
 ﻿using Microsoft.ML.OnnxRuntime;
-using RadpidOCRCSharpOnnx.Config;
+using RapidOCRSharpOnnx.Config;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Text;
 
 
-namespace RadpidOCRCSharpOnnx.InferenceEngine
+namespace RapidOCRSharpOnnx.InferenceEngine
 {
     public class OrtInferSession : IDisposable
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RadpidOCRCSharpOnnx.Utils
+namespace RapidOCRSharpOnnx.Utils
 {
     public enum DeviceType
     {

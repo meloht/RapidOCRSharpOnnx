@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 
-namespace RadpidOCRCSharpOnnx.InferenceEngine
+namespace RapidOCRSharpOnnx.InferenceEngine
 {
     public enum ExecutionProviders
     {

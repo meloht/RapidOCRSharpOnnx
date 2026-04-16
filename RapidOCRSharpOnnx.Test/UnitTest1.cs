@@ -1,4 +1,4 @@
-﻿namespace RadpidOCRCSharpOnnx.Test
+﻿namespace RapidOCRSharpOnnx.Test
 {
     public class UnitTest1
     {

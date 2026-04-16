@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RapidOCRCSharpOnnx.Inference.PPOCR_Rec
+namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
 {
     internal class TextRecognizer
     {

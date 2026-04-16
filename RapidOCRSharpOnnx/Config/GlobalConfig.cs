@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RadpidOCRCSharpOnnx.Config
+namespace RapidOCRSharpOnnx.Config
 {
     public static class GlobalConfig
     {

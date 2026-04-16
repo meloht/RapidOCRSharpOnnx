@@ -1,9 +1,9 @@
-﻿using RadpidOCRCSharpOnnx.InferenceEngine;
+﻿using RapidOCRSharpOnnx.InferenceEngine;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RadpidOCRCSharpOnnx.Config
+namespace RapidOCRSharpOnnx.Config
 {
     public static class OnnxEngineConfig
     {

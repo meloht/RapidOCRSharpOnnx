@@ -1,12 +1,12 @@
 ﻿using OpenCvSharp;
-using RadpidOCRCSharpOnnx.Config;
-using RadpidOCRCSharpOnnx.InferenceEngine;
-using RadpidOCRCSharpOnnx.Utils;
+using RapidOCRSharpOnnx.Config;
+using RapidOCRSharpOnnx.InferenceEngine;
+using RapidOCRSharpOnnx.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RapidOCRCSharpOnnx.Inference.PPOCR_Det
+namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 {
     public class DetPreprocess
     {

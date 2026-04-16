@@ -1,14 +1,14 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using OpenCvSharp;
-using RadpidOCRCSharpOnnx.Config;
+using RapidOCRSharpOnnx.Config;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 
 
-namespace RadpidOCRCSharpOnnx.InferenceEngine
+namespace RapidOCRSharpOnnx.InferenceEngine
 {
     public class TextClassifier
     {

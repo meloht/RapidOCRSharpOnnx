@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RapidOCRCSharpOnnx.Inference.PPOCR_CLS
+namespace RapidOCRSharpOnnx.Inference.PPOCR_CLS
 {
     internal class TextClassifier
     {

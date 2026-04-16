@@ -1,10 +1,10 @@
 ﻿
 using OpenCvSharp;
-using RadpidOCRCSharpOnnx.Config;
-using RadpidOCRCSharpOnnx.InferenceEngine;
-using RadpidOCRCSharpOnnx.Utils;
+using RapidOCRSharpOnnx.Config;
+using RapidOCRSharpOnnx.InferenceEngine;
+using RapidOCRSharpOnnx.Utils;
 using System.Runtime.InteropServices;
-namespace RadpidOCRCSharpOnnx.ConsoleApp
+namespace RapidOCRSharpOnnx.ConsoleApp
 {
     internal class Program
     {

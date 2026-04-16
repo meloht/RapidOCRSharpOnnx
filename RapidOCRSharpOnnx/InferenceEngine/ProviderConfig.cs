@@ -1,12 +1,12 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using OpenCvSharp.Internal;
-using RadpidOCRCSharpOnnx.Config;
+using RapidOCRSharpOnnx.Config;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace RadpidOCRCSharpOnnx.InferenceEngine
+namespace RapidOCRSharpOnnx.InferenceEngine
 {
     public class ProviderConfig
     {

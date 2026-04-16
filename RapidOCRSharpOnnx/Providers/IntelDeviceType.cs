@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RapidOCRCSharpOnnx.Providers
+namespace RapidOCRSharpOnnx.Providers
 {
     public enum IntelDeviceType
     {

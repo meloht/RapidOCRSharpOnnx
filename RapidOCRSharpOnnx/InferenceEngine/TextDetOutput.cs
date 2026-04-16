@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RadpidOCRCSharpOnnx.InferenceEngine
+namespace RapidOCRSharpOnnx.InferenceEngine
 {
     
     public struct TextDetOutput

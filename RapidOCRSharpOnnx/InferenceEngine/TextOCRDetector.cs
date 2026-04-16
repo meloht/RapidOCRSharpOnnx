@@ -1,15 +1,15 @@
 ﻿using Clipper2Lib;
 using Microsoft.ML.OnnxRuntime;
 using OpenCvSharp;
-using RadpidOCRCSharpOnnx.Config;
-using RadpidOCRCSharpOnnx.Utils;
+using RapidOCRSharpOnnx.Config;
+using RapidOCRSharpOnnx.Utils;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 
-namespace RadpidOCRCSharpOnnx.InferenceEngine
+namespace RapidOCRSharpOnnx.InferenceEngine
 {
     public class TextOCRDetector : IDisposable
     {

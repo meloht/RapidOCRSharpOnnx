@@ -1,12 +1,12 @@
 ﻿using OpenCvSharp;
-using RadpidOCRCSharpOnnx.Config;
-using RadpidOCRCSharpOnnx.InferenceEngine;
+using RapidOCRSharpOnnx.Config;
+using RapidOCRSharpOnnx.InferenceEngine;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace RadpidOCRCSharpOnnx.Utils
+namespace RapidOCRSharpOnnx.Utils
 {
     public static class UtilsHelper
     {
