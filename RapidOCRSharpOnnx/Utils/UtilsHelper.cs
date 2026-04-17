@@ -1,4 +1,5 @@
 ﻿using OpenCvSharp;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -74,7 +75,49 @@ namespace RapidOCRSharpOnnx.Utils
             return results;
         }
 
+        public static SKBitmap MatToSKBitmapFast(Mat mat)
+        {
+            if (mat.Empty())
+                throw new ArgumentException("Mat is empty");
 
+            Mat converted = new Mat();
+
+            if (mat.Channels() == 3)
+            {
+                Cv2.CvtColor(mat, converted, ColorConversionCodes.BGR2BGRA);
+            }
+            else if (mat.Channels() == 4)
+            {
+                converted = mat;
+            }
+            else if (mat.Channels() == 1)
+            {
+                Cv2.CvtColor(mat, converted, ColorConversionCodes.GRAY2BGRA);
+            }
+            else
+            {
+                throw new NotSupportedException("Unsupported format");
+            }
+
+            var bitmap = new SKBitmap(
+                converted.Width,
+                converted.Height,
+                SKColorType.Bgra8888,
+                SKAlphaType.Premul
+            );
+
+            unsafe
+            {
+                Buffer.MemoryCopy(
+                    (void*)converted.DataPointer,
+                    (void*)bitmap.GetPixels().ToPointer(),
+                    converted.Total() * converted.ElemSize(),
+                    converted.Total() * converted.ElemSize()
+                );
+            }
+
+            return bitmap;
+        }
 
 
 

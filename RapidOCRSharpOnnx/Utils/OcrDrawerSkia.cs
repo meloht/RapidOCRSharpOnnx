@@ -1,0 +1,272 @@
+﻿using OpenCvSharp;
+using SkiaSharp;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace RapidOCRSharpOnnx.Utils
+{
+    internal class OcrDrawerSkia
+    {
+        private readonly SKTypeface _typeface;
+        private readonly Random _rand = new Random(0);
+
+        public float TextScore = 0.5f;
+
+        public OcrDrawerSkia(string fontPath)
+        {
+            _typeface = SKTypeface.FromFile(fontPath);
+        }
+
+        public SKBitmap DrawOcrBoxTxt(SKBitmap image, Point2f[][] dtBoxes, List<string> txts, List<float>? scores = null)
+        {
+            int w = image.Width;
+            int h = image.Height;
+
+            // ===== 左图（copy）=====
+            var imgLeft = new SKBitmap(w, h);
+            using var canvasLeft = new SKCanvas(imgLeft);
+            canvasLeft.DrawBitmap(image, 0, 0);
+
+            // ===== 右图（白底）=====
+            var imgRight = new SKBitmap(w, h);
+            using var canvasRight = new SKCanvas(imgRight);
+            canvasRight.Clear(SKColors.White);
+
+            for (int i = 0; i < dtBoxes.Length; i++)
+            {
+                if (scores != null && scores[i] < TextScore)
+                    continue;
+
+                var box = dtBoxes[i];
+                string txt = txts[i];
+
+                var color = GetRandomColor();
+
+                var points = box.Select(p => new SKPoint(p.X, p.Y)).ToArray();
+
+                // ===== 左：填充 =====
+                using (var paint = new SKPaint
+                {
+                    Color = color,
+                    Style = SKPaintStyle.Fill,
+                    IsAntialias = true
+                })
+                {
+                    var path = BuildPath(points);
+                    canvasLeft.DrawPath(path, paint);
+                }
+
+                // ===== 右：画框 =====
+                using (var paint = new SKPaint
+                {
+                    Color = color,
+                    Style = SKPaintStyle.Stroke,
+                    StrokeWidth = 2,
+                    IsAntialias = true
+                })
+                {
+                    var path = BuildPath(points);
+                    canvasRight.DrawPath(path, paint);
+                }
+                float boxH = GetBoxHeight(box);
+                float boxW = GetBoxWidth(box);
+
+                bool vertical = boxH > 2 * boxW;
+
+                using SKFont font = GetFont(box, txt, boxH, boxW, vertical);
+                // ===== 文本 =====
+                DrawText(canvasRight, box, txt, font, boxH, boxW, vertical);
+            }
+
+            // ===== 半透明融合（左图）=====
+            var blended = new SKBitmap(w, h);
+            using (var canvas = new SKCanvas(blended))
+            {
+                canvas.DrawBitmap(image, 0, 0);
+
+                using var paint = new SKPaint
+                {
+                    Color = new SKColor(255, 255, 255, 128) // 0.5 alpha
+                };
+                canvas.DrawBitmap(imgLeft, 0, 0, paint);
+            }
+
+            // ===== 拼接 =====
+            var result = new SKBitmap(w * 2, h);
+            using (var canvas = new SKCanvas(result))
+            {
+                canvas.DrawBitmap(blended, 0, 0);
+                canvas.DrawBitmap(imgRight, w, 0);
+            }
+
+            return result;
+        }
+
+        private SKFont GetFont(Point2f[] box, string txt, float boxH, float boxW, bool vertical)
+        {
+            float fontSize = vertical
+                ? Math.Max(boxW * 0.9f, 10)
+                : Math.Max(boxH * 0.8f, 10);
+
+            SKFont font = new(_typeface, fontSize);
+            font.Size = FitTextSizeToHeight(font, boxH);
+            return font;
+        }
+
+        // ===== 文本绘制 =====
+        private void DrawText(SKCanvas canvas, Point2f[] box, string txt, SKFont font, float boxH, float boxW, bool vertical)
+        {
+            using var paint = new SKPaint
+            {
+                IsAntialias = true,
+                Color = SKColors.Black
+            };
+
+            float x = box[3].X;
+            float y = box[3].Y - font.Metrics.Descent;
+
+            if (vertical)
+            {
+                float curY = y;
+                foreach (char c in txt)
+                {
+                    string s = c.ToString();
+                    canvas.DrawText(s, x + 3, curY, font, paint);
+                    curY += GetTextBounds(font, c.ToString()).Height;
+                }
+            }
+            else
+            {
+                canvas.DrawText(txt, x, y, font, paint);
+            }
+        }
+
+        // ===== 构建多边形 =====
+        private SKPath BuildPath(SKPoint[] pts)
+        {
+            var path = new SKPath();
+            path.MoveTo(pts[0]);
+            for (int i = 1; i < pts.Length; i++)
+                path.LineTo(pts[i]);
+            path.Close();
+            return path;
+        }
+
+        private float Distance(Point2f p1, Point2f p2)
+        {
+            float dx = p1.X - p2.X;
+            float dy = p1.Y - p2.Y;
+            return (float)Math.Sqrt(dx * dx + dy * dy);
+        }
+        private float GetBoxHeight(Point2f[] box)
+        {
+            float minY = box.Min(p => p.Y);
+            float maxY = box.Max(p => p.Y);
+            return maxY - minY;
+        }
+        private SKSize GetTextBounds(SKFont paint, string text)
+        {
+            if (paint == null || string.IsNullOrEmpty(text))
+                return SKSize.Empty;
+
+            // 测量文本边界矩形（自动计算宽高）
+            paint.MeasureText(text, out SKRect rect);
+
+            // 提取宽度、高度
+            float width = rect.Width;
+            float height = rect.Height;
+
+            return new SKSize(width, height);
+        }
+        /// <summary>
+        /// 计算检测框宽度
+        /// </summary>
+        private float GetBoxWidth(Point2f[] box)
+        {
+            float minX = box.Min(p => p.X);
+            float maxX = box.Max(p => p.X);
+            return maxX - minX;
+        }
+        private SKColor GetRandomColor()
+        {
+            return new SKColor(
+                (byte)_rand.Next(0, 256),
+                (byte)_rand.Next(0, 256),
+                (byte)_rand.Next(0, 256)
+            );
+        }
+
+        private float FitTextSizeToHeight(SKFont font, float targetHeight)
+        {
+            // 先设一个基准字体大小
+
+            font.Size = 100;
+            var metrics = font.Metrics;
+            float textHeight = metrics.Descent - metrics.Ascent;
+
+            // 计算缩放比例
+            float scale = targetHeight / textHeight;
+
+            return font.Size * scale;
+        }
+
+
+        private float FitTextSizeToWidth(SKFont font, string text, float targetWidth)
+        {
+            // 先设一个基准值
+            font.Size = 100f;
+
+            float measuredWidth = font.MeasureText(text);
+
+            if (measuredWidth <= 0)
+                return font.Size;
+
+            float scale = targetWidth / measuredWidth;
+
+            return font.Size * scale;
+        }
+
+        private float FitTextSizeBinary(SKFont font, string text, float targetWidth)
+        {
+            float low = 1f, high = 500f;
+
+            while (high - low > 0.5f)
+            {
+                float mid = (low + high) / 2;
+                font.Size = mid;
+
+                float width = font.MeasureText(text);
+
+                if (width > targetWidth)
+                    high = mid;
+                else
+                    low = mid;
+            }
+
+            return low;
+        }
+
+
+        private float FitTextSizeBinary(SKFont font, float targetHeight)
+        {
+            float low = 1f, high = 500f;
+
+            while (high - low > 0.5f)
+            {
+                float mid = (low + high) / 2;
+                font.Size = mid;
+
+                var m = font.Metrics;
+                float h = m.Descent - m.Ascent;
+
+                if (h > targetHeight)
+                    high = mid;
+                else
+                    low = mid;
+            }
+
+            return low;
+        }
+    }
+}

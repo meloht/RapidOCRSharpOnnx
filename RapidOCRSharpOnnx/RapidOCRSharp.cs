@@ -4,6 +4,7 @@ using RapidOCRSharpOnnx.Configurations;
 using RapidOCRSharpOnnx.Inference;
 using RapidOCRSharpOnnx.Providers;
 using RapidOCRSharpOnnx.Utils;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -45,7 +46,23 @@ namespace RapidOCRSharpOnnx
             var croppedImgList = UtilsHelper.MapImgToOriginal(detResult.ImgCropList, detResult.RatioH, detResult.RatioW);
             var resCorp = _textCalRecBox.CalRecBoxes(croppedImgList, recResults, detResult.Boxes);
 
-            //using var input = SKBitmap.Decode(imgPath);
+            using var input = SKBitmap.Decode(imagePath);
+
+            var drawer = new OcrDrawerSkia(@"C:\Windows\Fonts\msyh.ttc");
+            SKBitmap result = null;
+            if (resCorp.boxes == null || resCorp.boxes.Count == 0)
+            {
+                result = drawer.DrawOcrBoxTxt(input, detResult.Boxes, recResults.Select(p => p.Label).ToList(), recResults.Select(p => p.Score).ToList());
+            }
+            else
+            {
+                result = drawer.DrawOcrBoxTxt(input, resCorp.boxes.ToArray(), resCorp.words, resCorp.confs);
+            }
+            using var img = SKImage.FromBitmap(result);
+            using var data = img.Encode(SKEncodedImageFormat.Jpeg, 100);
+
+            string resPath = $"res_{Path.GetFileName(imagePath)}";
+            File.WriteAllBytes(resPath, data.ToArray());
             //return recognizedResults;
         }
 
