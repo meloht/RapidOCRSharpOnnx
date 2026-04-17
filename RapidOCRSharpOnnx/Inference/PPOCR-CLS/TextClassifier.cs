@@ -7,7 +7,7 @@ using System.Text;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
 {
-    public class TextClassifier : IDisposable
+    public class TextClassifier : IOcrClassifier
     {
         protected readonly InferenceSession _session;
         protected readonly SessionOptions _options;

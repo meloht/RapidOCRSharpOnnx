@@ -8,7 +8,7 @@ using System.Text;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
 {
-    public class TextRecognizer : IDisposable
+    public class TextRecognizer : IOcrRecognizer
     {
         protected readonly InferenceSession _session;
         protected readonly SessionOptions _options;
@@ -16,7 +16,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
 
         private IRecPreprocess _recPreprocess;
         private IRecPostprocess _recPostprocess;
-        private readonly List<string> _charList;
+        private readonly string[] _charList;
 
         private OcrConfig _ocrConfig;
 
@@ -29,9 +29,10 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
             _recPostprocess = postprocess;
             _ocrConfig = ocrConfig;
 
-            _charList = GetCharacterList();
-            _charList.Insert(0, "blank");
-            _charList.Add(" ");
+            var charList = GetCharacterList();
+            charList.Insert(0, "blank");
+            charList.Add(" ");
+            _charList = charList.ToArray();
         }
 
         private List<string> GetCharacterList(string key = "character")
@@ -104,7 +105,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
                 sw.Stop();
                 Console.WriteLine($"Rec Inference time: {sw.ElapsedMilliseconds} ms");
 
-                var res = _recPostprocess.RecPostProcess(outData[0], wh_ratio_list, max_wh_ratio);
+                var res = _recPostprocess.RecPostProcess(outData[0], wh_ratio_list, max_wh_ratio, _charList);
 
                 for (int j = 0; j < res.Length && imgIdx < imgCount; j++, imgIdx++)
                 {

@@ -9,7 +9,7 @@ using System.Text;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 {
-    public class TextDetector : IDisposable
+    public class TextDetector : IOcrDetector
     {
         protected readonly InferenceSession _session;
         protected readonly SessionOptions _options;

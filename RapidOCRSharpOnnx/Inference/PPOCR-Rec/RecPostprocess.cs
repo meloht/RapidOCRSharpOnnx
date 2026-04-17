@@ -7,16 +7,14 @@ using System.Text;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
 {
-    public class RecPostprocess
+    public class RecPostprocess: IRecPostprocess
     {
         private OcrConfig _ocrConfig;
-        private readonly List<string> _charList;
-        public RecPostprocess(OcrConfig ocrConfig, List<string> charList)
+        public RecPostprocess(OcrConfig ocrConfig)
         {
             _ocrConfig = ocrConfig;
-            _charList = charList;
         }
-        public InferenceResult[] RecPostProcess(OrtValue ortValue, float[] wh_ratio_list, float max_wh_ratio)
+        public InferenceResult[] RecPostProcess(OrtValue ortValue, float[] wh_ratio_list, float max_wh_ratio, string[] charList)
         {
             var shapeInfo = ortValue.GetTensorTypeAndShape();
             int batchSize = (int)shapeInfo.Shape[0];
@@ -36,7 +34,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
 
                 var confList = GetConfList(maxIndexAndValue.Values, i, selection);
 
-                string text = GetCharList(token_indices, selection);
+                string text = GetCharList(token_indices, selection, charList);
                 float avgConf = (float)Math.Round(confList.Average(), 5);
 
                 results[i] = new InferenceResult(text, avgConf);
@@ -214,7 +212,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
             return confList;
         }
 
-        private string GetCharList(int[] tokenIndices, bool[] selection)
+        private string GetCharList(int[] tokenIndices, bool[] selection, string[] charList)
         {
             StringBuilder txt = new StringBuilder();
             StringBuilder sb = new StringBuilder();
@@ -222,7 +220,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
             {
                 if (selection[i])
                 {
-                    txt.Append(_charList[tokenIndices[i]]);
+                    txt.Append(charList[tokenIndices[i]]);
                     sb.Append(tokenIndices[i]).Append(",");
                 }
             }
