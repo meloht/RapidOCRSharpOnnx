@@ -41,7 +41,9 @@ namespace RapidOCRSharpOnnx
             var clsBoxes = _ocrClassifier.TextClassify(detResult.ImgCropList);
             var recResults = _ocrRecognizer.TextRecognize(detResult.ImgCropList);
 
-            UtilsHelper.MapBoxesToOriginal(detResult.Boxes, detResult.RatioH, detResult.RatioW, detResult.PaddingTop, detResult.PaddingLeft, image.Height, image.Width);
+
+            using Mat image3 = Cv2.ImRead(imagePath);
+            UtilsHelper.MapBoxesToOriginal(detResult.Boxes, detResult.RatioH, detResult.RatioW, detResult.PaddingTop, detResult.PaddingLeft, image3.Height, image3.Width);
 
             var croppedImgList = UtilsHelper.MapImgToOriginal(detResult.ImgCropList, detResult.RatioH, detResult.RatioW);
             var resCorp = _textCalRecBox.CalRecBoxes(croppedImgList, recResults, detResult.Boxes);

@@ -7,8 +7,6 @@ namespace RapidOCRSharpOnnx.Configurations
 {
     public class DetectorConfig
     {
-
-        public required OCRVersion OCRVersion { get; set; }
         public required string ModelPath { get; set; }
 
         public int LimitSideLen { get; set; } = 736;
@@ -21,6 +19,8 @@ namespace RapidOCRSharpOnnx.Configurations
         public float UnclipRatio { get; set; } = 1.6f;
         public bool UseDilation { get; set; } = true;
         public ScoreMode ScoreMode { get; set; } = ScoreMode.FAST;
+
+
 
 
     }

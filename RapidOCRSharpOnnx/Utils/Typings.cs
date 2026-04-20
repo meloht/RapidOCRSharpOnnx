@@ -51,6 +51,7 @@ namespace RapidOCRSharpOnnx.Utils
     {
         PPOCRV4,
         PPOCRV5,
+        Null
     }
 
     public enum EngineType

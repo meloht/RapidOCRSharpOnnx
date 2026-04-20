@@ -12,5 +12,7 @@ namespace RapidOCRSharpOnnx.Configurations
         public int ClsBatchNum { get; set; } = 6;
         public float ClsThresh { get; set; } = 0.9f;
         public string[] LabelList { get; set; } = ["0", "180"];
+
+
     }
 }

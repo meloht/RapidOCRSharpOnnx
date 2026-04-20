@@ -29,14 +29,15 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
         }
         public DetectResult TextDetect(Mat image)
         {
-            var data = _detPreprocess.Preprocess(image);
+            using Mat resizedImg = image.Clone();
+            var data = _detPreprocess.Preprocess(image, resizedImg);
             using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(data.Data, data.Dimensions);
             using var runOptions = new RunOptions();
 
             using var results = _session.Run(runOptions, _session.InputNames, [inputOrtValue], _session.OutputNames);
             using var output0 = results[0];
-            var res = _detPostprocess.PostProcess(image, output0);
-            
+            var res = _detPostprocess.PostProcess(resizedImg, output0);
+
             res.RatioW = data.RatioW;
             res.RatioH = data.RatioH;
             res.PaddingLeft = data.PaddingLeft;

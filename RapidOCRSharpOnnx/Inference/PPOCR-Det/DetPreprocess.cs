@@ -14,9 +14,8 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
         {
             _ocrConfig = ocrConfig;
         }
-        public DataTensorDimensions Preprocess(Mat image)
+        public DataTensorDimensions Preprocess(Mat image, Mat resizedImg)
         {
-            using Mat resizedImg = new Mat();
 
             (float RatioH, float RatioW) = ResizeImageWithinBounds(image, resizedImg, _ocrConfig.MinSideLen, _ocrConfig.MaxSideLen);
 
@@ -52,12 +51,12 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                 limitSideLen = 2000;
             }
 
+            using Mat resizedImg = new Mat();
+            Resize(image, resizedImg, limitSideLen);
 
-            Resize(image, image, limitSideLen);
+            float[] inputData = NormalizeAndPermute(resizedImg);
 
-            float[] inputData = NormalizeAndPermute(image);
-
-            return new DataTensorDimensions(inputData, new long[] { 1, 3, image.Height, image.Width });
+            return new DataTensorDimensions(inputData, new long[] { 1, 3, resizedImg.Height, resizedImg.Width });
         }
 
 
