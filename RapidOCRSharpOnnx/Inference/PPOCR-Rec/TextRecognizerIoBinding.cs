@@ -5,12 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
+namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
 {
-    public class TextClassifierIoBinding : TextClassifierBase, IOcrClassifier
+    public class TextRecognizerIoBinding : TextRecognizerBase, IOcrRecognizer
     {
         private OrtIoBinding _binding;
-        public TextClassifierIoBinding(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OcrConfig ocrConfig)
+        public TextRecognizerIoBinding(InferenceSession session, SessionOptions options, IRecPostprocess postprocess, IRecPreprocess preprocess, OcrConfig ocrConfig) 
             : base(session, options, postprocess, preprocess, ocrConfig)
         {
             _binding = _session.CreateIoBinding();
@@ -21,6 +21,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
             DisposeBase();
             _binding.Dispose();
         }
+
 
         protected override IDisposableReadOnlyCollection<OrtValue> InferenceRun(OrtValue inputOrtValue)
         {

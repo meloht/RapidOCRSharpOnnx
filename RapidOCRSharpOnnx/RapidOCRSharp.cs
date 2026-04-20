@@ -38,19 +38,16 @@ namespace RapidOCRSharpOnnx
         public void RecognizeText(string imagePath, string savePath = null)
         {
             using Mat image = Cv2.ImRead(imagePath);
-            var detResult = _ocrDetector.TextDetect(image);
-            var clsBoxes = _ocrClassifier.TextClassify(detResult.ImgCropList);
-            var recResults = _ocrRecognizer.TextRecognize(detResult.ImgCropList);
-
-            if (!string.IsNullOrEmpty(savePath))
-            {
-                _ocrDrawerSkia.DrawTextBlock(image, savePath, detResult, recResults);
-            }
+            RecognizeText(image, savePath);
         }
         public void RecognizeText(Mat image, string savePath = null)
         {
             var detResult = _ocrDetector.TextDetect(image);
-            var clsBoxes = _ocrClassifier.TextClassify(detResult.ImgCropList);
+            if (_ocrClassifier != null)
+            {
+                var clsBoxes = _ocrClassifier.TextClassify(detResult.ImgCropList);
+            }
+
             var recResults = _ocrRecognizer.TextRecognize(detResult.ImgCropList);
 
             if (!string.IsNullOrEmpty(savePath))

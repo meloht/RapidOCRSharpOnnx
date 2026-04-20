@@ -1,17 +1,18 @@
 ﻿using Microsoft.ML.OnnxRuntime;
+using Microsoft.ML.OnnxRuntime.Tensors;
 using OpenCvSharp;
-using RapidOCRSharpOnnx.Configurations;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
+namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 {
-    public class TextClassifierIoBinding : TextClassifierBase, IOcrClassifier
+    public class TextDetectorIoBinding : TextDetectorBase, IOcrDetector
     {
         private OrtIoBinding _binding;
-        public TextClassifierIoBinding(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OcrConfig ocrConfig)
-            : base(session, options, postprocess, preprocess, ocrConfig)
+
+        public TextDetectorIoBinding(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess)
+            : base(session, options, postprocess, preprocess)
         {
             _binding = _session.CreateIoBinding();
         }
@@ -19,8 +20,9 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
         public void Dispose()
         {
             DisposeBase();
-            _binding.Dispose();
+            _binding?.Dispose();
         }
+
 
         protected override IDisposableReadOnlyCollection<OrtValue> InferenceRun(OrtValue inputOrtValue)
         {

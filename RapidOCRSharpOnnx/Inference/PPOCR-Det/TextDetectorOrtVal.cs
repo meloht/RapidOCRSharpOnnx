@@ -9,48 +9,24 @@ using System.Text;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 {
-    public class TextDetectorOrtVal : IOcrDetector
+    public class TextDetectorOrtVal : TextDetectorBase, IOcrDetector
     {
-        protected readonly InferenceSession _session;
-        protected readonly SessionOptions _options;
-        protected readonly RunOptions _runOptions;
-
-        private IDetPreprocess _detPreprocess;
-        private IDetPostprocess _detPostprocess;
-
 
         public TextDetectorOrtVal(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess)
+            : base(session, options, postprocess, preprocess)
         {
-            _runOptions = new RunOptions();
-            _session = session;
-            _options = options;
-            _detPreprocess = preprocess;
-            _detPostprocess = postprocess;
-        }
-        public DetectResult TextDetect(Mat image)
-        {
-            using Mat resizedImg = image.Clone();
-            var data = _detPreprocess.Preprocess(image, resizedImg);
-            using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(data.Data, data.Dimensions);
-            using var runOptions = new RunOptions();
 
-            using var results = _session.Run(runOptions, _session.InputNames, [inputOrtValue], _session.OutputNames);
-            using var output0 = results[0];
-            var res = _detPostprocess.PostProcess(resizedImg, output0);
-
-            res.RatioW = data.RatioW;
-            res.RatioH = data.RatioH;
-            res.PaddingLeft = data.PaddingLeft;
-            res.PaddingTop = data.PaddingTop;
-
-            return res;
         }
 
         public void Dispose()
         {
-            _session?.Dispose();
-            _options?.Dispose();
-            _runOptions?.Dispose();
+            DisposeBase();
+        }
+
+        protected override IDisposableReadOnlyCollection<OrtValue> InferenceRun(OrtValue inputOrtValue)
+        {
+            var results = _session.Run(_runOptions, _session.InputNames, [inputOrtValue], _session.OutputNames);
+            return results;
         }
     }
 }
