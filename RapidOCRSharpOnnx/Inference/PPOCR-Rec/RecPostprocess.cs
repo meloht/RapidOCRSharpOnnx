@@ -39,14 +39,9 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
                 float avgConf = (float)Math.Round(confList.Average(), 5);
 
                 results[i] = new RecResult(text, avgConf);
-                if (_ocrConfig.ReturnWordBox)
-                {
-                    var wordInfo = GetWordInfo(text, selection, confList);
-                    // 这里可以根据 wordInfo 进行进一步处理，例如返回单词边界框等
-                    wordInfo.LineTxtLen = token_indices.Length * wh_ratio_list[i] / max_wh_ratio;
-
-                    results[i].WordInfo = wordInfo;
-                }
+                results[i].LineTxtLen = token_indices.Length * wh_ratio_list[i] / max_wh_ratio;
+                results[i].ValidCols = GetValidCols(selection);
+                results[i].ConfList = confList;
             }
             return results;
 
@@ -88,7 +83,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
 
         }
 
-        private WordInfo GetWordInfo(string text, bool[] selection, List<float> confList)
+        private List<int> GetValidCols(bool[] selection)
         {
             var validCol = new List<int>();
             for (int i = 0; i < selection.Length; i++)
@@ -96,107 +91,9 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
                 if (selection[i])
                     validCol.Add(i);
             }
-            if (validCol.Count == 0)
-                return new WordInfo(); // 无有效字符
-
-            List<WordItem> wordItems = new List<WordItem>();
-
-            float[] colWidth = new float[validCol.Count];
-            for (int i = 1; i < validCol.Count; i++)
-            {
-                colWidth[i] = validCol[i] - validCol[i - 1];
-            }
-
-            int firstColValue = validCol[0];
-            int minVal = text.Length > 0 && UtilsHelper.IsChineseChar(text[0]) ? 3 : 2;
-            colWidth[0] = Math.Min(minVal, firstColValue);
-
-
-            var wordContent = new List<char>();
-            var wordColContent = new List<int>();
-            var confArr = new List<float>();
-
-
-            WordType? state = null;
-
-            for (int cIdx = 0; cIdx < text.Length; cIdx++)
-            {
-                char ch = text[cIdx];
-
-                // 处理空白字符：结束当前单词
-                if (char.IsWhiteSpace(ch))
-                {
-                    if (wordContent.Count > 0)
-                    {
-                        WordItem wordItem = new WordItem
-                        {
-                            Words = wordContent.ToArray(),
-                            WordCols = wordColContent.ToArray(),
-                            WordType = state.Value,
-                            Confs = confArr.ToArray()
-                        };
-                        wordItems.Add(wordItem);
-
-                        wordContent.Clear();
-                        wordColContent.Clear();
-                        confArr.Clear();
-                    }
-
-                    continue;
-                }
-
-
-                // 判断当前字符类型
-                WordType cState = UtilsHelper.IsChineseChar(ch) ? WordType.CN : WordType.EN_NUM;
-                if (state == null)
-                    state = cState;
-
-                // 类型变化或列宽过大（>5）时切分单词
-                if (state != cState || colWidth[cIdx] > 5)
-                {
-                    if (wordContent.Count > 0)
-                    {
-
-                        WordItem wordItem = new WordItem
-                        {
-                            Words = wordContent.ToArray(),
-                            WordCols = wordColContent.ToArray(),
-                            WordType = state.Value,
-                            Confs = confArr.ToArray()
-                        };
-                        wordItems.Add(wordItem);
-
-                        wordContent.Clear();
-                        wordColContent.Clear();
-                        confArr.Clear();
-
-                    }
-                    state = cState;
-                }
-
-                // 将当前字符加入正在构建的单词
-                wordContent.Add(ch);
-                wordColContent.Add(validCol[cIdx]);
-                confArr.Add(confList[cIdx]);
-            }
-
-            // 处理最后一个单词
-            if (wordContent.Count > 0)
-            {
-                WordItem wordItem = new WordItem
-                {
-                    Words = wordContent.ToArray(),
-                    WordCols = wordColContent.ToArray(),
-                    WordType = state.Value,
-                    Confs = confArr.ToArray()
-                };
-                wordItems.Add(wordItem);
-            }
-            WordInfo res = new WordInfo();
-            res.WordItems = wordItems;
-            return res;
-
+            return validCol;
         }
+   
         private List<float> GetConfList(float[][] values, int batchIdx, bool[] selection)
         {
             // 获取置信度列表

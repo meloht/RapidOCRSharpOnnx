@@ -8,7 +8,12 @@ namespace RapidOCRSharpOnnx.Models
     {
         public string Label { get; set; }
         public float Score { get; set; }
-        public WordInfo WordInfo { get; set; }
+
+        public float LineTxtLen { get; set; }
+
+        public List<int> ValidCols { get; set; }
+
+        public List<float> ConfList { get; set; }
 
         public RecResult(string label, float score)
         {

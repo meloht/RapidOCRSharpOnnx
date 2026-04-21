@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
+using static System.Collections.Specialized.BitVector32;
 
 namespace RapidOCRSharpOnnx.Inference
 {
@@ -181,7 +182,110 @@ namespace RapidOCRSharpOnnx.Inference
 
             return boxPoints;
         }
+        private List<WordItem> GetWordInfo(string text, List<int> validCol, List<float> confList)
+        {
+            if (!_ocrConfig.ReturnWordBox || validCol == null || validCol.Count == 0)
+            {
+                return null;
+            }
 
+            List<WordItem> wordItems = new List<WordItem>();
+
+            float[] colWidth = new float[validCol.Count];
+            for (int i = 1; i < validCol.Count; i++)
+            {
+                colWidth[i] = validCol[i] - validCol[i - 1];
+            }
+
+            int firstColValue = validCol[0];
+            int minVal = text.Length > 0 && UtilsHelper.IsChineseChar(text[0]) ? 3 : 2;
+            colWidth[0] = Math.Min(minVal, firstColValue);
+
+
+            var wordContent = new List<char>();
+            var wordColContent = new List<int>();
+            var confArr = new List<float>();
+
+
+            WordType? state = null;
+
+            for (int cIdx = 0; cIdx < text.Length; cIdx++)
+            {
+                char ch = text[cIdx];
+
+                // 处理空白字符：结束当前单词
+                if (char.IsWhiteSpace(ch))
+                {
+                    if (wordContent.Count > 0)
+                    {
+                        WordItem wordItem = new WordItem
+                        {
+                            Words = wordContent.ToArray(),
+                            WordCols = wordColContent.ToArray(),
+                            WordType = state.Value,
+                            Confs = confArr.ToArray()
+                        };
+                        wordItems.Add(wordItem);
+
+                        wordContent.Clear();
+                        wordColContent.Clear();
+                        confArr.Clear();
+                    }
+
+                    continue;
+                }
+
+
+                // 判断当前字符类型
+                WordType cState = UtilsHelper.IsChineseChar(ch) ? WordType.CN : WordType.EN_NUM;
+                if (state == null)
+                    state = cState;
+
+                // 类型变化或列宽过大（>5）时切分单词
+                if (state != cState || colWidth[cIdx] > 5)
+                {
+                    if (wordContent.Count > 0)
+                    {
+
+                        WordItem wordItem = new WordItem
+                        {
+                            Words = wordContent.ToArray(),
+                            WordCols = wordColContent.ToArray(),
+                            WordType = state.Value,
+                            Confs = confArr.ToArray()
+                        };
+                        wordItems.Add(wordItem);
+
+                        wordContent.Clear();
+                        wordColContent.Clear();
+                        confArr.Clear();
+
+                    }
+                    state = cState;
+                }
+
+                // 将当前字符加入正在构建的单词
+                wordContent.Add(ch);
+                wordColContent.Add(validCol[cIdx]);
+                confArr.Add(confList[cIdx]);
+            }
+
+            // 处理最后一个单词
+            if (wordContent.Count > 0)
+            {
+                WordItem wordItem = new WordItem
+                {
+                    Words = wordContent.ToArray(),
+                    WordCols = wordColContent.ToArray(),
+                    WordType = state.Value,
+                    Confs = confArr.ToArray()
+                };
+                wordItems.Add(wordItem);
+            }
+
+            return wordItems;
+
+        }
 
         public List<DetBoxItem> CalRecBoxes(Mat[] imgCropList, RecResult[] inferences, DetBoxItem[] items)
         {
@@ -202,8 +306,9 @@ namespace RapidOCRSharpOnnx.Inference
                 imgBox[3] = new Point2f(0, h);
 
                 Point2f[] box = items[i].Box;
+                var wordItems = GetWordInfo(txt, inferences[i].ValidCols, inferences[i].ConfList);
 
-                var res = CalOcrWordBox(txt, imgBox, inferences[i].WordInfo);
+                var res = CalOcrWordBox(txt, imgBox, wordItems, inferences[i].LineTxtLen);
                 AdjustBoxOverlap(res);
                 var direction = GetBoxDirection(box);
                 ReverseRotateCropImage(box.Select(p => new Point2f(p.X, p.Y)).ToArray(), res, direction);
@@ -474,11 +579,11 @@ namespace RapidOCRSharpOnnx.Inference
             float z = m20 * vec[0] + m21 * vec[1] + m22 * vec[2];
             return [x, y, z];
         }
-        private List<DetBoxItem> CalOcrWordBox(string recTxt, Point2f[] bbox, WordInfo wordInfo)
+        private List<DetBoxItem> CalOcrWordBox(string recTxt, Point2f[] bbox, List<WordItem> wordItems, float lineTxtLen)
         {
             List<DetBoxItem> result = new List<DetBoxItem>();
 
-            if (string.IsNullOrEmpty(recTxt) || wordInfo == null || wordInfo.LineTxtLen == 0)
+            if (string.IsNullOrEmpty(recTxt) || wordItems == null || lineTxtLen == 0)
             {
                 return result;
             }
@@ -486,10 +591,10 @@ namespace RapidOCRSharpOnnx.Inference
             var bboxPoints = QuadsToRectBbox([bbox]);
 
             // 计算平均列宽度
-            float avgColWidth = (bboxPoints.XMax - bboxPoints.XMin) / wordInfo.LineTxtLen;
+            float avgColWidth = (bboxPoints.XMax - bboxPoints.XMin) / lineTxtLen;
 
             // 判断：是否全为英文/数字
-            bool isAllEnNum = wordInfo.WordItems.All(v => v.WordType == WordType.EN_NUM);
+            bool isAllEnNum = wordItems.All(v => v.WordType == WordType.EN_NUM);
 
             List<int[]> lineCols = new List<int[]>();
             List<int> lineCols2 = new List<int>();
@@ -497,11 +602,11 @@ namespace RapidOCRSharpOnnx.Inference
             float charWidthsAvg = 0.0f;
             int charCount = 0;
             // 遍历单词 + 单词列索引
-            for (int i = 0; i < wordInfo.WordItems.Count; i++)
+            for (int i = 0; i < wordItems.Count; i++)
             {
-                var word = wordInfo.WordItems[i].Words;
-                var wordCol = wordInfo.WordItems[i].WordCols;
-                var conf = wordInfo.WordItems[i].Confs;
+                var word = wordItems[i].Words;
+                var wordCol = wordItems[i].WordCols;
+                var conf = wordItems[i].Confs;
                 // 全英文数字 + 不返回单字框 → 按单词处理
                 if (isAllEnNum && !_ocrConfig.ReturnSingleCharBox)
                 {
