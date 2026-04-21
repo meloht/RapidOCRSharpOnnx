@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RapidOCRSharpOnnx.Models
 {
-    public struct RecResult
+    public class RecResult
     {
         public string Label { get; set; }
         public float Score { get; set; }

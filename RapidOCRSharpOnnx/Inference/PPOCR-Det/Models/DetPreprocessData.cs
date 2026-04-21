@@ -5,20 +5,20 @@ using System.Text;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 {
-    public class DetectResult
+    public struct DetPreprocessData
     {
-        public Point2f[][] Boxes { get; set; }
-        public Mat[] ImgCropList { get; set; }
+        public float[] Data { get; private set; }
+        public long[] Dimensions { get; private set; }
         public float RatioH { get; set; }
         public float RatioW { get; set; }
 
         public int PaddingTop { get; set; }
         public int PaddingLeft { get; set; }
 
-        public DetectResult(Point2f[][] boxes, Mat[] imgCropList)
+        public DetPreprocessData(float[] data, long[] dimensions)
         {
-            Boxes = boxes;
-            ImgCropList = imgCropList;
+            Data = data;
+            Dimensions = dimensions;
         }
     }
 }

@@ -50,6 +50,11 @@ namespace RapidOCRSharpOnnx
 
             var recResults = _ocrRecognizer.TextRecognize(detResult.ImgCropList);
 
+            for (int i = 0; i < detResult.DetPostprocessItems.Length; i++)
+            {
+                detResult.DetPostprocessItems[i].Word = recResults[i].Label;
+            }
+
             if (!string.IsNullOrEmpty(savePath))
             {
                 _ocrDrawerSkia.DrawTextBlock(image, savePath, detResult, recResults);

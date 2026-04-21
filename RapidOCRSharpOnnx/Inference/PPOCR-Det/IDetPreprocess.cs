@@ -7,6 +7,6 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 {
     public interface IDetPreprocess
     {
-        DataTensorDimensions Preprocess(Mat image, Mat resizedImg);
+        DetPreprocessData Preprocess(Mat image, Mat resizedImg);
     }
 }

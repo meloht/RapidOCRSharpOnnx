@@ -1,9 +1,11 @@
 ﻿using OpenCvSharp;
 using RapidOCRSharpOnnx.Configurations;
+using RapidOCRSharpOnnx.Inference.PPOCR_Det.Models;
 using RapidOCRSharpOnnx.Models;
 using RapidOCRSharpOnnx.Utils;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 
 namespace RapidOCRSharpOnnx.Inference
@@ -44,7 +46,7 @@ namespace RapidOCRSharpOnnx.Inference
         /// <param name="bboxX1">检测框右x坐标</param>
         /// <param name="txtLen">文本长度</param>
         /// <returns>字符平均宽度</returns>
-        private float CalcAllCharAvgWidth(List<float> widthList, float bboxX0, float bboxX1, int txtLen)
+        private float CalcAllCharAvgWidth(float charWidthsAvg, int charCount, float bboxX0, float bboxX1, int txtLen)
         {
             // 1. 文本长度为0，直接返回0
             if (txtLen == 0)
@@ -53,9 +55,9 @@ namespace RapidOCRSharpOnnx.Inference
             }
 
             // 2. 宽度列表非空，计算列表平均值
-            if (widthList != null && widthList.Count > 0)
+            if (charCount > 0)
             {
-                return widthList.Sum() / widthList.Count;
+                return charWidthsAvg;
             }
 
             // 3. 无宽度列表，用检测框计算平均宽度
@@ -72,45 +74,60 @@ namespace RapidOCRSharpOnnx.Inference
         /// <param name="avgColWidth">平均列宽度</param>
         /// <param name="bboxPoints">外接矩形坐标 (x0,y0,x1,y1)</param>
         /// <returns>排序后的字符单元格三维坐标列表</returns>
-        private List<Point2f[]> CalcBox(int[] lineCols, float avgCharWidth, float avgColWidth, (float x0, float y0, float x1, float y1) bboxPoints)
+        private Point2f[][] CalcBox(int[] lineCols, float avgCharWidth, float avgColWidth, Rect2fData bboxPoints)
         {
-            // 解包外接矩形坐标（等价Python x0,y0,x1,y1 = bbox_points）
-            float x0 = bboxPoints.x0;
-            float y0 = bboxPoints.y0;
-            float x1 = bboxPoints.x1;
-            float y1 = bboxPoints.y1;
-
-            List<Point2f[]> results = new List<Point2f[]>();
+            Point2f[][] results = new Point2f[lineCols.Length][];
 
             // 遍历每个列索引
-            foreach (int colIdx in lineCols)
+            for (int i = 0; i < lineCols.Length; i++)
             {
-                // 计算列中心点X坐标
-                float centerX = (colIdx + 0.5f) * avgColWidth;
-                float halfCharWidth = avgCharWidth / 2;
-
-                // 计算字符左边界：取整后 ≥0，再叠加基准x0
-                int tempX0 = (int)(centerX - halfCharWidth);
-                float charX0 = Math.Max(tempX0, 0) + x0;
-
-                // 计算字符右边界：取整后 ≤ 矩形宽度，再叠加基准x0
-                int tempX1 = (int)(centerX + halfCharWidth);
-                float maxWidth = x1 - x0;
-                float charX1 = Math.Min(tempX1, maxWidth) + x0;
-
-                // 构造四边形单元格：左上、右上、右下、左下
-                Point2f[] cell = new Point2f[4];
-
-                cell[0] = new Point2f(charX0, y0);
-                cell[1] = new Point2f(charX1, y0);
-                cell[2] = new Point2f(charX1, y1);
-                cell[3] = new Point2f(charX0, y1);
-
-                results.Add(cell);
+                results[i] = CalcBox(lineCols[i], avgCharWidth, avgColWidth, bboxPoints);
             }
 
+            Array.Sort(results, (a, b) => a[0].X.CompareTo(b[0].X));
+
             // 按单元格左上角X坐标升序排序
-            return results.OrderBy(cell => cell[0].X).ToList();
+            return results;
+        }
+        /// <summary>
+        /// 计算单个单词的字符单元格坐标
+        /// </summary>
+        /// <param name="colIdx">列索引</param>
+        /// <param name="avgCharWidth">平均字符宽度</param>
+        /// <param name="avgColWidth">平均列宽度</param>
+        /// <param name="bboxPoints">外接矩形坐标 (x0,y0,x1,y1)</param>
+        /// <returns></returns>
+        private Point2f[] CalcBox(int colIdx, float avgCharWidth, float avgColWidth, Rect2fData bboxPoints)
+        {
+            // 解包外接矩形坐标
+            float x0 = bboxPoints.XMin;
+            float y0 = bboxPoints.YMin;
+            float x1 = bboxPoints.XMax;
+            float y1 = bboxPoints.YMax;
+
+            // 计算列中心点X坐标
+            float centerX = (colIdx + 0.5f) * avgColWidth;
+            float halfCharWidth = avgCharWidth / 2;
+
+            // 计算字符左边界：取整后 ≥0，再叠加基准x0
+            int tempX0 = (int)(centerX - halfCharWidth);
+            float charX0 = Math.Max(tempX0, 0) + x0;
+
+            // 计算字符右边界：取整后 ≤ 矩形宽度，再叠加基准x0
+            int tempX1 = (int)(centerX + halfCharWidth);
+            float maxWidth = x1 - x0;
+            float charX1 = Math.Min(tempX1, maxWidth) + x0;
+
+            // 构造四边形单元格：左上、右上、右下、左下
+            Point2f[] cell = new Point2f[4];
+
+            cell[0] = new Point2f(charX0, y0);
+            cell[1] = new Point2f(charX1, y0);
+            cell[2] = new Point2f(charX1, y1);
+            cell[3] = new Point2f(charX0, y1);
+
+            // 按单元格左上角X坐标升序排序
+            return cell;
         }
 
         /// <summary>
@@ -119,13 +136,13 @@ namespace RapidOCRSharpOnnx.Inference
         /// <param name="bbox">三维坐标列表：[N个四边形, 4个角点, x/y坐标]，对应shape (N,4,2)</param>
         /// <returns>最小外接矩形坐标元组</returns>
         /// <exception cref="ArgumentException">参数格式错误时抛出异常</exception>
-        private (float xMin, float yMin, float xMax, float yMax) QuadsToRectBbox(List<Point2f[]> bbox)
+        private Rect2fData QuadsToRectBbox(Point2f[][] bbox)
         {
-            // 1. 等价校验：是否为3维结构（外层列表为空 = 维度不合法）
+            float xMin = float.MaxValue;
+            float yMin = float.MaxValue;
+            float xMax = float.MinValue;
+            float yMax = float.MinValue;
 
-            // 3. 收集所有X、Y坐标
-            List<float> allX = new List<float>();
-            List<float> allY = new List<float>();
             foreach (var item in bbox)
             {
                 if (item.Length != 4)
@@ -134,57 +151,42 @@ namespace RapidOCRSharpOnnx.Inference
                 }
                 foreach (var point in item)
                 {
-                    allX.Add(point.X);
-                    allY.Add(point.Y);
+                    xMin = Math.Min(xMin, point.X);
+                    yMin = Math.Min(yMin, point.Y);
+                    xMax = Math.Max(xMax, point.X);
+                    yMax = Math.Max(yMax, point.Y);
                 }
             }
 
-
-            // 4. 计算最小/最大坐标（等价np.min / np.max）
-            float xMin = allX.Min();
-            float yMin = allY.Min();
-            float xMax = allX.Max();
-            float yMax = allY.Max();
-
-            // 5. 返回最小外接矩形
-            return (xMin, yMin, xMax, yMax);
+            return new Rect2fData(xMin, yMin, xMax, yMax);
         }
 
 
-        private List<Point2f[]> CalcEnNumBox(List<int[]> lineCols, float avgCharWidth, float avgColWidth, (float x0, float y0, float x1, float y1) bboxPoints)
+        private Point2f[] CalcEnNumBox(int[] oneCol, float avgCharWidth, float avgColWidth, Rect2fData bboxPoints)
         {
-            List<Point2f[]> results = new List<Point2f[]>();
+            // 调用类内方法 calc_box
+            Point2f[][] curWordCell = CalcBox(oneCol, avgCharWidth, avgColWidth, bboxPoints);
 
-            // 遍历每一列集合
-            foreach (var oneCol in lineCols)
-            {
-                // 调用类内方法 calc_box 计算单词单元格（this 替代 Python self）
-                List<Point2f[]> curWordCell = CalcBox(
-                    oneCol, avgCharWidth, avgColWidth, bboxPoints);
+            // 调用四边形转矩形方法，获取最小外接矩形 (x0,y0,x1,y1)
+            var rect = QuadsToRectBbox(curWordCell);
 
-                // 调用四边形转矩形方法，获取最小外接矩形 (x0,y0,x1,y1)
-                var (x0, y0, x1, y1) = QuadsToRectBbox(curWordCell);
+            // 严格按照原格式构造4个角点：左上、右上、右下、左下
 
-                // 严格按照原格式构造4个角点：左上、右上、右下、左下
+            Point2f[] boxPoints = new Point2f[4];
 
-                Point2f[] boxPoints = new Point2f[4];
+            boxPoints[0] = new Point2f(rect.XMin, rect.YMin);
+            boxPoints[1] = new Point2f(rect.XMax, rect.YMin);
+            boxPoints[2] = new Point2f(rect.XMax, rect.YMax);
+            boxPoints[3] = new Point2f(rect.XMin, rect.YMax);
 
-                boxPoints[0] = new Point2f(x0, y0);
-                boxPoints[1] = new Point2f(x1, y0);
-                boxPoints[2] = new Point2f(x1, y1);
-                boxPoints[3] = new Point2f(x0, y1);
-
-                results.Add(boxPoints);
-            }
-
-            return results;
+            return boxPoints;
         }
 
 
-        public WordResult CalRecBoxes(Mat[] imgCropList, RecResult[] inferences, Point2f[][] boxs)
+        public List<DetBoxItem> CalRecBoxes(Mat[] imgCropList, RecResult[] inferences, DetBoxItem[] items)
         {
 
-            WordResult result = new WordResult(new List<string>(), new List<float>(), new List<Point2f[]>());
+            List<DetBoxItem> result = new List<DetBoxItem>();
 
             for (int i = 0; i < imgCropList.Length; i++)
             {
@@ -199,34 +201,25 @@ namespace RapidOCRSharpOnnx.Inference
                 imgBox[2] = new Point2f(w, h);
                 imgBox[3] = new Point2f(0, h);
 
-                Point2f[] box = boxs[i];
+                Point2f[] box = items[i].Box;
 
                 var res = CalOcrWordBox(txt, imgBox, inferences[i].WordInfo);
-                var wordBoxes = AdjustBoxOverlap(res.wordBoxes);
+                AdjustBoxOverlap(res);
                 var direction = GetBoxDirection(box);
-                wordBoxes = ReverseRotateCropImage(box.Select(p => new Point2f(p.X, p.Y)).ToArray(), wordBoxes, direction);
+                ReverseRotateCropImage(box.Select(p => new Point2f(p.X, p.Y)).ToArray(), res, direction);
 
-                result.words.AddRange(res.wordContents);
-                result.confs.AddRange(res.confs);
-                result.boxes.AddRange(wordBoxes);
+                result.AddRange(res);
 
             }
-
-
             return result;
         }
-        public List<Point2f[]> AdjustBoxOverlap(List<Point2f[]> wordBoxList)
+        public void AdjustBoxOverlap(List<DetBoxItem> wordBoxList)
         {
-            List<Point2f[]> result = new List<Point2f[]>();
-            foreach (var item in wordBoxList)
-            {
-                result.Add(item.Select(p => new Point2f(p.X, p.Y)).ToArray());
-            }
             // 遍历到倒数第二个元素，防止索引越
-            for (int i = 0; i < result.Count - 1; i++)
+            for (int i = 0; i < wordBoxList.Count - 1; i++)
             {
-                Point2f[] cur = result[i];
-                Point2f[] nxt = result[i + 1];
+                Point2f[] cur = wordBoxList[i].Box;
+                Point2f[] nxt = wordBoxList[i + 1].Box;
 
                 // 判断条件：当前框右侧x坐标 > 下一个框左侧x坐标 → 存在重叠
                 if (cur[1].X > nxt[0].X)
@@ -243,7 +236,6 @@ namespace RapidOCRSharpOnnx.Inference
                     nxt[3].X += distance / 2;
                 }
             }
-            return result;
         }
 
         private Direction GetBoxDirection(Point2f[] box)
@@ -277,7 +269,7 @@ namespace RapidOCRSharpOnnx.Inference
             return aspectRatio >= 1.5f ? Direction.VERTICAL : Direction.HORIZONTAL;
         }
 
-        private List<Point2f[]> ReverseRotateCropImage(Point2f[] bboxPoints, List<Point2f[]> wordPointsList, Direction direction)
+        private void ReverseRotateCropImage(Point2f[] bboxPoints, List<DetBoxItem> wordBoxList, Direction direction)
         {
             // =====================计算最小左/上坐标，平移bbox =====================
             // 计算bbox所有点的最小X、最小Y
@@ -288,10 +280,7 @@ namespace RapidOCRSharpOnnx.Inference
             Point2f[] srcPoints = new Point2f[4];
             for (int i = 0; i < 4; i++)
             {
-                srcPoints[i] = new Point2f(
-                    bboxPoints[i].X - left,
-                    bboxPoints[i].Y - top
-                );
+                srcPoints[i] = new Point2f(bboxPoints[i].X - left, bboxPoints[i].Y - top);
             }
 
             // =====================计算裁剪图宽高 =====================
@@ -306,15 +295,13 @@ namespace RapidOCRSharpOnnx.Inference
             Cv2.Invert(perspectiveMat, inverseMat);
 
 
-            List<Point2f[]> newWordPointsList = new List<Point2f[]>();
-            foreach (var wordPoints in wordPointsList)
+            foreach (var wordPoints in wordBoxList)
             {
-                List<Point2f> newWordPoints = new List<Point2f>();
-                foreach (var point in wordPoints)
+                Point2f[] newWordPoints = new Point2f[wordPoints.Box.Length];
+                for (int j = 0; j < wordPoints.Box.Length; j++)
                 {
-                    float x = point.X;
-                    float y = point.Y;
-
+                    float x = wordPoints.Box[j].X;
+                    float y = wordPoints.Box[j].Y;
                     // 垂直方向：先旋转-90度 + X偏移
                     if (direction == Direction.VERTICAL)
                     {
@@ -335,14 +322,13 @@ namespace RapidOCRSharpOnnx.Inference
                     // 平移回原图坐标 + 转int
                     int finalX = (int)(newX + left);
                     int finalY = (int)(newY + top);
-                    newWordPoints.Add(new Point2f(finalX, finalY));
+                    newWordPoints[j] = new Point2f(finalX, finalY);
                 }
 
-                newWordPoints = OrderPoints(newWordPoints);
-                newWordPointsList.Add(newWordPoints.ToArray());
+                OrderPoints(newWordPoints);
+                wordPoints.Box = newWordPoints;
             }
 
-            return newWordPointsList;
         }
         /// <summary>
         /// 绕指定点 (pointx, pointy) 顺时针旋转坐标
@@ -374,7 +360,7 @@ namespace RapidOCRSharpOnnx.Inference
         /// </summary>
         /// <param name="oriBox">原始矩形框坐标 List[4个点][x,y]</param>
         /// <returns>排序后的标准矩形框坐标</returns>
-        public List<Point2f> OrderPoints(List<Point2f> oriBox)
+        public void OrderPoints(Point2f[] oriBox)
         {
             // ===================== 2. 计算中心点 =====================
             double centerX = oriBox.Average(p => p.X);
@@ -400,7 +386,7 @@ namespace RapidOCRSharpOnnx.Inference
             // ===================== 分支2：所有x=中心 → 竖直线，按Y排序 =====================
             else if (oriBox.All(p => p.X == centerX))
             {
-                // 对应np.argsort(box[:,1]) 按Y升序排列
+                // 按Y升序排列
                 var sortedByY = oriBox.OrderBy(p => p.Y).ToList();
                 p1 = sortedByY[0];
                 p2 = sortedByY[1];
@@ -443,13 +429,14 @@ namespace RapidOCRSharpOnnx.Inference
             }
 
             // ===================== 4. 转换输出=====================
-            List<Point2f> result = [new(p1.X, p1.Y), new(p2.X, p2.Y), new(p3.X, p3.Y), new(p4.X, p4.Y)];
-
-            return result;
+            oriBox[0] = p1;
+            oriBox[1] = p2;
+            oriBox[2] = p3;
+            oriBox[3] = p4;
         }
 
         /// <summary>
-        /// 3x3矩阵 × 3维向量（对应 np.dot(IM, p)）
+        /// 3x3矩阵 × 3维向量
         /// </summary>
         private static float[] MatMultiply(Mat mat, float[] vec)
         {
@@ -463,7 +450,7 @@ namespace RapidOCRSharpOnnx.Inference
             double m21 = mat.At<double>(2, 1);
             double m22 = mat.At<double>(2, 2);
 
-            // 矩阵向量乘法 = np.dot(IM, p)
+            // 矩阵向量乘法
             float x = (float)(m00 * vec[0] + m01 * vec[1] + m02 * vec[2]);
             float y = (float)(m10 * vec[0] + m11 * vec[1] + m12 * vec[2]);
             float z = (float)(m20 * vec[0] + m21 * vec[1] + m22 * vec[2]);
@@ -481,35 +468,34 @@ namespace RapidOCRSharpOnnx.Inference
             float m21 = (float)mat[2, 1];
             float m22 = (float)mat[2, 2];
 
-            // 矩阵向量乘法 = np.dot(IM, p)
+            // 矩阵向量乘法
             float x = m00 * vec[0] + m01 * vec[1] + m02 * vec[2];
             float y = m10 * vec[0] + m11 * vec[1] + m12 * vec[2];
             float z = m20 * vec[0] + m21 * vec[1] + m22 * vec[2];
             return [x, y, z];
         }
-        private (List<string> wordContents, List<Point2f[]> wordBoxes, List<float> confs) CalOcrWordBox(string recTxt, Point2f[] bbox, WordInfo wordInfo)
+        private List<DetBoxItem> CalOcrWordBox(string recTxt, Point2f[] bbox, WordInfo wordInfo)
         {
-            if (string.IsNullOrEmpty(recTxt) || wordInfo.LineTxtLen == 0)
+            List<DetBoxItem> result = new List<DetBoxItem>();
+
+            if (string.IsNullOrEmpty(recTxt) || wordInfo == null || wordInfo.LineTxtLen == 0)
             {
-                return (new List<string>(), new List<Point2f[]>(), new List<float>());
+                return result;
             }
 
             var bboxPoints = QuadsToRectBbox([bbox]);
 
-            float xMin = bboxPoints.xMin;
-            float xMax = bboxPoints.xMax;
             // 计算平均列宽度
-            float avgColWidth = (xMax - xMin) / wordInfo.LineTxtLen;
+            float avgColWidth = (bboxPoints.XMax - bboxPoints.XMin) / wordInfo.LineTxtLen;
 
             // 判断：是否全为英文/数字
             bool isAllEnNum = wordInfo.WordTypes.All(v => v == WordType.EN_NUM);
 
             List<int[]> lineCols = new List<int[]>();
             List<int> lineCols2 = new List<int>();
-            List<float> charWidths = new List<float>();
-            List<string> wordContents = new List<string>();
-            List<float> confArr = new List<float>();
 
+            float charWidthsAvg = 0.0f;
+            int charCount = 0;
             // 遍历单词 + 单词列索引
             for (int i = 0; i < wordInfo.Words.Count; i++)
             {
@@ -520,16 +506,21 @@ namespace RapidOCRSharpOnnx.Inference
                 // 全英文数字 + 不返回单字框 → 按单词处理
                 if (isAllEnNum && !_ocrConfig.ReturnSingleCharBox)
                 {
-                    lineCols.Add(wordCol.ToArray()); // 
-                    wordContents.Add(new string(word.ToArray()));
-                    confArr.Add(conf.Average());
+                    lineCols.Add(wordCol); // 
+
+                    DetBoxItem item = new DetBoxItem(null, conf.Average(), 0, new string(word));
+                    result.Add(item);
                 }
                 else
                 {
                     // 汉字/中英混合 → 按单字符处理
                     lineCols2.AddRange(wordCol);
-                    wordContents.AddRange(word.Select(c => c.ToString()));
-                    confArr.AddRange(conf);
+
+                    for (int j = 0; j < word.Length; j++)
+                    {
+                        DetBoxItem item = new DetBoxItem(null, conf[j], 0, word[j].ToString());
+                        result.Add(item);
+                    }
                 }
 
                 // 列长度为1，跳过平均宽度计算
@@ -538,30 +529,35 @@ namespace RapidOCRSharpOnnx.Inference
 
                 // 计算当前单词的平均字符宽度
                 float avgWidth = CalcAvgCharWidth(wordCol, avgColWidth);
-                charWidths.Add(avgWidth);
+
+                charWidthsAvg += avgWidth;
+                charCount++;
             }
+            charWidthsAvg = charWidthsAvg / charCount;
 
             // 计算全局平均字符宽度
-            float avgCharWidth = CalcAllCharAvgWidth(
-                charWidths,
-                bboxPoints.xMin,
-                bboxPoints.xMax,
-                recTxt.Length
-            );
+            float avgCharWidth = CalcAllCharAvgWidth(charWidthsAvg, charCount, bboxPoints.XMin, bboxPoints.XMax, recTxt.Length);
 
-            List<Point2f[]> wordBoxes;
             // 分支：英文单词框 / 单字符框
             if (isAllEnNum && !_ocrConfig.ReturnSingleCharBox)
             {
-                wordBoxes = CalcEnNumBox(lineCols, avgCharWidth, avgColWidth, bboxPoints);
+                for (int i = 0; i < lineCols.Count; i++)
+                {
+                    result[i].Box = CalcEnNumBox(lineCols[i], avgCharWidth, avgColWidth, bboxPoints);
+                }
+
             }
             else
             {
-                wordBoxes = CalcBox(lineCols2.ToArray(), avgCharWidth, avgColWidth, bboxPoints);
-            }
+                for (int i = 0; i < lineCols2.Count; i++)
+                {
+                    result[i].Box = CalcBox(lineCols2[i], avgCharWidth, avgColWidth, bboxPoints);
+                }
+                result.Sort((a, b) => a.Box[0].X.CompareTo(b.Box[0].X));
 
+            }
             // 返回：文本内容、检测框、置信度
-            return (wordContents, wordBoxes, confArr);
+            return result;
 
         }
     }

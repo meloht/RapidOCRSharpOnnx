@@ -2,10 +2,12 @@
 using RapidOCRSharpOnnx.Configurations;
 using RapidOCRSharpOnnx.Inference;
 using RapidOCRSharpOnnx.Inference.PPOCR_Det;
+using RapidOCRSharpOnnx.Inference.PPOCR_Det.Models;
 using RapidOCRSharpOnnx.Models;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
@@ -32,21 +34,21 @@ namespace RapidOCRSharpOnnx.Utils
 
         public void DrawTextBlock(Mat image, string savePath, DetectResult detResult, RecResult[] recResults)
         {
-            UtilsHelper.MapBoxesToOriginal(detResult.Boxes, detResult.RatioH, detResult.RatioW, detResult.PaddingTop, detResult.PaddingLeft, image.Height, image.Width);
+            UtilsHelper.MapBoxesToOriginal(detResult.DetPostprocessItems, detResult.RatioH, detResult.RatioW, detResult.PaddingTop, detResult.PaddingLeft, image.Height, image.Width);
 
             var croppedImgList = UtilsHelper.MapImgToOriginal(detResult.ImgCropList, detResult.RatioH, detResult.RatioW);
-            var resCorp = _textCalRecBox.CalRecBoxes(croppedImgList, recResults, detResult.Boxes);
+            var resCorp = _textCalRecBox.CalRecBoxes(croppedImgList, recResults, detResult.DetPostprocessItems);
 
             using var input = Convert(image);
 
             SKBitmap result = null;
-            if (resCorp.boxes == null || resCorp.boxes.Count == 0)
+            if (resCorp == null || resCorp.Count == 0)
             {
-                result = DrawOcrBoxTxt(input, detResult.Boxes, recResults.Select(p => p.Label).ToList(), recResults.Select(p => p.Score).ToList());
+                result = DrawOcrBoxTxt(input, detResult.DetPostprocessItems);
             }
             else
             {
-                result = DrawOcrBoxTxt(input, resCorp.boxes.ToArray(), resCorp.words, resCorp.confs);
+                result = DrawOcrBoxTxt(input, resCorp);
             }
             using var img = SKImage.FromBitmap(result);
             using var data = img.Encode(SKEncodedImageFormat.Jpeg, 100);
@@ -54,7 +56,7 @@ namespace RapidOCRSharpOnnx.Utils
             File.WriteAllBytes(savePath, data.ToArray());
         }
 
-        private SKBitmap DrawOcrBoxTxt(SKBitmap image, Point2f[][] dtBoxes, List<string> txts, List<float>? scores = null)
+        private SKBitmap DrawOcrBoxTxt(SKBitmap image, IEnumerable<DetBoxItem> items)
         {
             int w = image.Width;
             int h = image.Height;
@@ -69,13 +71,13 @@ namespace RapidOCRSharpOnnx.Utils
             using var canvasRight = new SKCanvas(imgRight);
             canvasRight.Clear(SKColors.White);
 
-            for (int i = 0; i < dtBoxes.Length; i++)
+            foreach (var item in items)
             {
-                if (scores != null && scores[i] < TextScore)
+                if (item.Score < TextScore)
                     continue;
 
-                var box = dtBoxes[i];
-                string txt = txts[i];
+                var box = item.Box;
+                string txt = item.Word;
 
                 var color = GetRandomColor();
 

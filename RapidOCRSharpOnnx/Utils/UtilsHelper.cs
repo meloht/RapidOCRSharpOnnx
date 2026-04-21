@@ -1,4 +1,6 @@
 ﻿using OpenCvSharp;
+using RapidOCRSharpOnnx.Inference.PPOCR_Det;
+using RapidOCRSharpOnnx.Inference.PPOCR_Det.Models;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
@@ -66,14 +68,14 @@ namespace RapidOCRSharpOnnx.Utils
             return (float)Math.Sqrt(dx * dx + dy * dy);
         }
 
-        public static void MapBoxesToOriginal(Point2f[][] boxes, float ratioH, float ratioW, int paddingTop, int paddingLeft, int ori_h, int ori_w)
+        public static void MapBoxesToOriginal(DetBoxItem[] items, float ratioH, float ratioW, int paddingTop, int paddingLeft, int ori_h, int ori_w)
         {
-            for (int i = 0; i < boxes.Length; i++)
+            for (int i = 0; i < items.Length; i++)
             {
-                for (int j = 0; j < boxes[i].Length; j++)
+                for (int j = 0; j < items[i].Box.Length; j++)
                 {
-                    boxes[i][j].X = Math.Clamp((boxes[i][j].X - paddingLeft) * ratioW, 0, ori_w);
-                    boxes[i][j].Y = Math.Clamp((boxes[i][j].Y - paddingTop) * ratioH, 0, ori_h);
+                    items[i].Box[j].X = Math.Clamp((items[i].Box[j].X - paddingLeft) * ratioW, 0, ori_w);
+                    items[i].Box[j].Y = Math.Clamp((items[i].Box[j].Y - paddingTop) * ratioH, 0, ori_h);
                 }
             }
         }

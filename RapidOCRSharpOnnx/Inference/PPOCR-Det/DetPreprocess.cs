@@ -17,7 +17,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
             _ocrConfig = ocrConfig;
             _paddingColor = new Scalar(0, 0, 0);
         }
-        public DataTensorDimensions Preprocess(Mat image, Mat resizedImg)
+        public DetPreprocessData Preprocess(Mat image, Mat resizedImg)
         {
             RatioData ratio = ResizeImageWithinBounds(image, resizedImg, _ocrConfig.MinSideLen, _ocrConfig.MaxSideLen);
             PaddingData padding = ApplyVerticalPadding(resizedImg, _ocrConfig.WidthHeightRatio, _ocrConfig.MinHeight);
@@ -30,7 +30,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 
             return data;
         }
-        private DataTensorDimensions PreprocessImage(Mat image)
+        private DetPreprocessData PreprocessImage(Mat image)
         {
             int maxWh = Math.Max(image.Width, image.Height);
             int limitSideLen = _ocrConfig.DetectorConfig.LimitSideLen;
@@ -57,7 +57,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 
             float[] inputData = NormalizeAndPermute(resizedImg);
 
-            return new DataTensorDimensions(inputData, [1, 3, resizedImg.Height, resizedImg.Width]);
+            return new DetPreprocessData(inputData, [1, 3, resizedImg.Height, resizedImg.Width]);
         }
 
 
@@ -68,7 +68,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
         private float[] NormalizeAndPermute(Mat img)
         {
             int len = img.Width * img.Height * 3;
-            //float[] data = ArrayPool<float>.Shared.Rent(len);
+           
             float[] data = new float[len];
             int height = img.Height;
             int width = img.Width;
