@@ -24,13 +24,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
 
         protected override IDisposableReadOnlyCollection<OrtValue> InferenceRun(OrtValue inputOrtValue)
         {
-            _binding.BindInput(_session.InputNames[0], inputOrtValue);
-            _binding.BindOutputToDevice(_session.OutputNames[0], OrtMemoryInfo.DefaultInstance);
-            _binding.SynchronizeBoundInputs();
-
-            var results = _session.RunWithBoundResults(_runOptions, _binding);
-            _binding.SynchronizeBoundOutputs();
-            return results;
+            return InferenceRunCore(inputOrtValue,_binding);
         }
     }
 }

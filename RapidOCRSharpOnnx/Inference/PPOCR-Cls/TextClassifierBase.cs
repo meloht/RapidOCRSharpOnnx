@@ -8,11 +8,8 @@ using System.Text;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
 {
-    public abstract class TextClassifierBase
+    public abstract class TextClassifierBase : OnnxInferenceCore
     {
-        protected readonly InferenceSession _session;
-        protected readonly SessionOptions _options;
-        protected readonly RunOptions _runOptions;
 
         protected IClsPreprocess _clsPreprocess;
         protected IClsPostprocess _clsPostprocess;
@@ -24,13 +21,9 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
         protected readonly int[] _clsImageShape;
 
 
-        protected abstract IDisposableReadOnlyCollection<OrtValue> InferenceRun(OrtValue inputOrtValue);
-
         public TextClassifierBase(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OcrConfig ocrConfig)
+            : base(session, options)
         {
-            _runOptions = new RunOptions();
-            _session = session;
-            _options = options;
             _clsPreprocess = preprocess;
             _clsPostprocess = postprocess;
             _ocrConfig = ocrConfig;

@@ -25,8 +25,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 
         protected override IDisposableReadOnlyCollection<OrtValue> InferenceRun(OrtValue inputOrtValue)
         {
-            var results = _session.Run(_runOptions, _session.InputNames, [inputOrtValue], _session.OutputNames);
-            return results;
+            return InferenceRunCore(inputOrtValue);
         }
     }
 }

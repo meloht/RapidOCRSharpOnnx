@@ -6,22 +6,15 @@ using System.Text;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 {
-    public abstract class TextDetectorBase
+    public abstract class TextDetectorBase : OnnxInferenceCore
     {
-        protected readonly InferenceSession _session;
-        protected readonly SessionOptions _options;
-        protected readonly RunOptions _runOptions;
 
         protected IDetPreprocess _detPreprocess;
         protected IDetPostprocess _detPostprocess;
 
-        protected abstract IDisposableReadOnlyCollection<OrtValue> InferenceRun(OrtValue inputOrtValue);
-
-        public TextDetectorBase(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess)
+        public TextDetectorBase(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess) 
+            : base(session, options)
         {
-            _runOptions = new RunOptions();
-            _session = session;
-            _options = options;
             _detPreprocess = preprocess;
             _detPostprocess = postprocess;
         }

@@ -8,11 +8,8 @@ using System.Text;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
 {
-    public abstract class TextRecognizerBase
+    public abstract class TextRecognizerBase : OnnxInferenceCore
     {
-        protected readonly InferenceSession _session;
-        protected readonly SessionOptions _options;
-        protected readonly RunOptions _runOptions;
 
         protected IRecPreprocess _recPreprocess;
         protected IRecPostprocess _recPostprocess;
@@ -20,13 +17,10 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
 
         protected OcrConfig _ocrConfig;
 
-        protected abstract IDisposableReadOnlyCollection<OrtValue> InferenceRun(OrtValue inputOrtValue);
 
         public TextRecognizerBase(InferenceSession session, SessionOptions options, IRecPostprocess postprocess, IRecPreprocess preprocess, OcrConfig ocrConfig)
+            : base(session, options)
         {
-            _runOptions = new RunOptions();
-            _session = session;
-            _options = options;
             _recPreprocess = preprocess;
             _recPostprocess = postprocess;
             _ocrConfig = ocrConfig;
