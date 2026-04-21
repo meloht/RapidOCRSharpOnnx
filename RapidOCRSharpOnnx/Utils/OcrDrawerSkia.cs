@@ -2,9 +2,11 @@
 using RapidOCRSharpOnnx.Configurations;
 using RapidOCRSharpOnnx.Inference;
 using RapidOCRSharpOnnx.Inference.PPOCR_Det;
+using RapidOCRSharpOnnx.Models;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
@@ -396,7 +398,7 @@ namespace RapidOCRSharpOnnx.Utils
                     Vector256<byte> v1 = Avx.LoadVector256(s + 8);
                     Vector256<byte> v2 = Avx.LoadVector256(s + 16);
 
-                    byte* tmp = stackalloc byte[32];
+                    byte* tmp = (byte*)Marshal.AllocHGlobal(32);
 
                     for (int i = 0; i < 8; i++)
                     {

@@ -1,5 +1,9 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using RapidOCRSharpOnnx.Configurations;
+using RapidOCRSharpOnnx.Inference;
+using RapidOCRSharpOnnx.Inference.PPOCR_Cls;
+using RapidOCRSharpOnnx.Inference.PPOCR_Det;
+using RapidOCRSharpOnnx.Inference.PPOCR_Rec;
 using RapidOCRSharpOnnx.Utils;
 using System;
 using System.Collections.Generic;
@@ -43,6 +47,21 @@ namespace RapidOCRSharpOnnx.Providers
             options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
             options.EnableCpuMemArena = true;
             return options;
+        }
+
+        protected override IOcrClassifier CreateOcrClassifier(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess)
+        {
+            return new TextClassifierIoBinding(session, options, postprocess, preprocess, OcrConfig);
+        }
+
+        protected override IOcrDetector CreateOcrDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess)
+        {
+            return new TextDetectorIoBinding(session, options, postprocess, preprocess);
+        }
+
+        protected override IOcrRecognizer CreateOcrRecognizer(InferenceSession session, SessionOptions options, IRecPostprocess postprocess, IRecPreprocess preprocess)
+        {
+            return new TextRecognizerIoBinding(session, options, postprocess, preprocess, OcrConfig);
         }
 
         protected override DeviceType GetDeviceType()

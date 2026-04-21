@@ -27,7 +27,21 @@ namespace RapidOCRSharpOnnx.Providers
             sessionOptions.AppendExecutionProvider_CoreML(_coreMLFlags);
             return sessionOptions;
         }
-      
+
+        protected override IOcrClassifier CreateOcrClassifier(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess)
+        {
+            return new TextClassifierOrtVal(session, options, postprocess, preprocess, OcrConfig);
+        }
+
+        protected override IOcrDetector CreateOcrDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess)
+        {
+            return new TextDetectorOrtVal(session, options, postprocess, preprocess);
+        }
+
+        protected override IOcrRecognizer CreateOcrRecognizer(InferenceSession session, SessionOptions options, IRecPostprocess postprocess, IRecPreprocess preprocess)
+        {
+            return new TextRecognizerOrtVal(session, options, postprocess, preprocess, OcrConfig);
+        }
 
         protected override DeviceType GetDeviceType()
         {

@@ -1,5 +1,6 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using RapidOCRSharpOnnx.Configurations;
+using RapidOCRSharpOnnx.Models;
 using RapidOCRSharpOnnx.Utils;
 using System;
 using System.Collections.Generic;

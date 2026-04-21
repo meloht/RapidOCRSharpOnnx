@@ -18,6 +18,11 @@ namespace RapidOCRSharpOnnx.Providers
 
         protected abstract SessionOptions BuildSessionOptions();
 
+        protected abstract IOcrDetector CreateOcrDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess);
+
+        protected abstract IOcrClassifier CreateOcrClassifier(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess);
+        protected abstract IOcrRecognizer CreateOcrRecognizer(InferenceSession session, SessionOptions options, IRecPostprocess postprocess, IRecPreprocess preprocess);
+
         public OcrConfig OcrConfig { get; private set; }
 
         public ExecutionProvider(OcrConfig ocrConfig)
@@ -36,14 +41,13 @@ namespace RapidOCRSharpOnnx.Providers
             var postprocess = new DetPostprocess(OcrConfig.DetectorConfig);
             var preprocess = new DetPreprocess(OcrConfig);
 
-            return new TextDetectorOrtVal(session, options, postprocess, preprocess);
+            return CreateOcrDetector(session, options, postprocess, preprocess);
         }
 
         public IOcrClassifier CreateClassifier()
         {
             if (OcrConfig.ClassifierConfig == null || string.IsNullOrWhiteSpace(OcrConfig.ClassifierConfig.ModelPath))
             {
-                //throw new ArgumentException("ClassifierConfig or ModelPath is null or empty.");
                 return null;
             }
             var options = BuildSessionOptions();
@@ -51,7 +55,7 @@ namespace RapidOCRSharpOnnx.Providers
             var postprocess = new ClsPostprocess(OcrConfig.ClassifierConfig);
             var preprocess = new ClsPreprocess();
 
-            return new TextClassifierOrtVal(session, options, postprocess, preprocess, OcrConfig);
+            return CreateOcrClassifier(session, options, postprocess, preprocess);
         }
 
         public IOcrRecognizer CreateRecognizer()
@@ -65,7 +69,7 @@ namespace RapidOCRSharpOnnx.Providers
             var postprocess = new RecPostprocess(OcrConfig);
             var preprocess = new RecPreprocess(OcrConfig.RecognizerConfig);
 
-            return new TextRecognizerOrtVal(session, options, postprocess, preprocess, OcrConfig);
+            return CreateOcrRecognizer(session, options, postprocess, preprocess);
         }
     }
 }
