@@ -57,7 +57,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 
             float[] inputData = NormalizeAndPermute(resizedImg);
 
-            return new DataTensorDimensions(inputData, new long[] { 1, 3, resizedImg.Height, resizedImg.Width });
+            return new DataTensorDimensions(inputData, [1, 3, resizedImg.Height, resizedImg.Width]);
         }
 
 
@@ -253,14 +253,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
             if (resizeH <= 0 || resizeW <= 0)
                 throw new Exception("The adjusted width or height is less than or equal to 0");
 
-            try
-            {
-                Cv2.Resize(img, resizedImg, new Size(resizeW, resizeH));
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Image scaling failed", ex);
-            }
+            Cv2.Resize(img, resizedImg, new Size(resizeW, resizeH));
 
             float ratioH = h / (float)resizeH;
             float ratioW = w / (float)resizeW;
