@@ -51,17 +51,17 @@ namespace RapidOCRSharpOnnx.Providers
 
         protected override IOcrClassifier CreateOcrClassifier(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess)
         {
-            return new TextClassifierIoBinding(session, options, postprocess, preprocess, OcrConfig);
+            return new TextClassifierIoBinding(session, options, postprocess, preprocess, OcrConfig, GetDeviceType());
         }
 
         protected override IOcrDetector CreateOcrDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess)
         {
-            return new TextDetectorIoBinding(session, options, postprocess, preprocess);
+            return new TextDetectorIoBinding(session, options, postprocess, preprocess, OcrConfig, GetDeviceType());
         }
 
         protected override IOcrRecognizer CreateOcrRecognizer(InferenceSession session, SessionOptions options, IRecPostprocess postprocess, IRecPreprocess preprocess)
         {
-            return new TextRecognizerIoBinding(session, options, postprocess, preprocess, OcrConfig);
+            return new TextRecognizerIoBinding(session, options, postprocess, preprocess, OcrConfig, GetDeviceType());
         }
 
         protected override DeviceType GetDeviceType()

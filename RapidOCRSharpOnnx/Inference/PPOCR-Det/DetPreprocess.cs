@@ -1,10 +1,12 @@
 ﻿using OpenCvSharp;
 using RapidOCRSharpOnnx.Configurations;
 using RapidOCRSharpOnnx.Inference.PPOCR_Det.Models;
+using RapidOCRSharpOnnx.Providers;
 using RapidOCRSharpOnnx.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Channels;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 {
@@ -19,17 +21,69 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
         }
         public DetPreprocessData Preprocess(Mat image, Mat resizedImg)
         {
-            RatioData ratio = ResizeImageWithinBounds(image, resizedImg, _ocrConfig.MinSideLen, _ocrConfig.MaxSideLen);
-            PaddingData padding = ApplyVerticalPadding(resizedImg, _ocrConfig.WidthHeightRatio, _ocrConfig.MinHeight);
+            ResizeData resizeData = new ResizeData();
+            ResizeImageWithinBounds(image, resizedImg, _ocrConfig.MinSideLen, _ocrConfig.MaxSideLen, resizeData);
+            ApplyVerticalPadding(resizedImg, _ocrConfig.WidthHeightRatio, _ocrConfig.MinHeight, resizeData);
 
             var data = PreprocessImage(resizedImg);
-            data.RatioW = ratio.RatioW;
-            data.RatioH = ratio.RatioH;
-            data.PaddingLeft = padding.Left;
-            data.PaddingTop = padding.Top;
-
+            data.ResizeData = resizeData;
             return data;
         }
+
+        public async Task PreprocessBatchAsync(List<string> listImg, DeviceType deviceType, ChannelWriter<DetPreResultBatch> writer)
+        {
+            var arr = GetPreprocessWorkersSize(listImg, deviceType);
+            Task[] tasks = new Task[arr.Count()];
+            int idx = 0;
+            foreach (string[] subList in arr)
+            {
+                tasks[idx++] = RunPreprocessSplitAsync(subList, writer);
+            }
+            await Task.WhenAll(tasks);
+
+            writer.Complete();
+        }
+        private async Task RunPreprocessSplitAsync(IEnumerable<string> list, ChannelWriter<DetPreResultBatch> writer)
+        {
+            await Task.Run(async () =>
+            {
+                foreach (string imgPath in list)
+                {
+                    using Mat img = Cv2.ImRead(imgPath);
+                    Mat resizedImg = img.Clone();
+                    var res = Preprocess(img, resizedImg);
+                    await writer.WriteAsync(new DetPreResultBatch(res, resizedImg, imgPath));
+                }
+
+            });
+        }
+        private IEnumerable<string[]> GetPreprocessWorkersSize(List<string> listImg, DeviceType deviceType)
+        {
+            int preprocessWorkers = Environment.ProcessorCount;
+            if (deviceType == DeviceType.CPU)
+            {
+                preprocessWorkers = 2;
+            }
+            else
+            {
+                if (listImg.Count < Environment.ProcessorCount)
+                {
+                    preprocessWorkers = Environment.ProcessorCount / 2;
+                }
+                if (listImg.Count < preprocessWorkers)
+                {
+                    preprocessWorkers = 2;
+                }
+            }
+            int size = listImg.Count / preprocessWorkers;
+
+            if (size < 1)
+            {
+                size = listImg.Count;
+            }
+            return listImg.Chunk(size);
+        }
+
         private DetPreprocessData PreprocessImage(Mat image)
         {
             int maxWh = Math.Max(image.Width, image.Height);
@@ -68,7 +122,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
         private float[] NormalizeAndPermute(Mat img)
         {
             int len = img.Width * img.Height * 3;
-           
+
             float[] data = new float[len];
             int height = img.Height;
             int width = img.Width;
@@ -153,18 +207,19 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
         /// <param name="minSideLen">最小边长</param>
         /// <param name="maxSideLen">最大边长</param>
         /// <returns>调整后的图像及缩放比例（原始高/新高，原始宽/新宽）</returns>
-        private RatioData ResizeImageWithinBounds(Mat img, Mat resizedImg, float minSideLen, float maxSideLen)
+        private void ResizeImageWithinBounds(Mat img, Mat resizedImg, float minSideLen, float maxSideLen, ResizeData resizeData)
         {
             int h = img.Height;
             int w = img.Width;
 
-            RatioData ratio = new RatioData(1.0f, 1.0f);
+            resizeData.RatioW = 1.0f;
+            resizeData.RatioH = 1.0f;
 
             // 如果最大边超过上限，先缩小
             if (Math.Max(h, w) > maxSideLen)
             {
-                ratio = ReduceMaxSide(img, resizedImg, maxSideLen);
-               
+                ReduceMaxSide(img, resizedImg, resizeData, maxSideLen);
+
                 h = resizedImg.Height;
                 w = resizedImg.Width;
             }
@@ -172,10 +227,8 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
             // 如果最小边低于下限，再放大
             if (Math.Min(h, w) < minSideLen)
             {
-                ratio = IncreaseMinSide(img, resizedImg, minSideLen);
+                IncreaseMinSide(img, resizedImg, resizeData, minSideLen);
             }
-
-            return ratio;
         }
 
         /// <summary>
@@ -184,7 +237,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
         /// <param name="img">输入图像</param>
         /// <param name="maxSideLen">最大边长限制</param>
         /// <returns>调整后的图像及缩放比例（原始高/新高，原始宽/新宽）</returns>
-        private RatioData ReduceMaxSide(Mat img, Mat resizedImg, float maxSideLen = 2000)
+        private void ReduceMaxSide(Mat img, Mat resizedImg, ResizeData resizeData, float maxSideLen = 2000)
         {
             int h = img.Height;
             int w = img.Width;
@@ -208,19 +261,14 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
             if (resizeH <= 0 || resizeW <= 0)
                 throw new Exception("The adjusted width or height is less than or equal to 0");
 
-            try
-            {
-                Cv2.Resize(img, resizedImg, new Size(resizeW, resizeH));
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Image scaling failed", ex);
-            }
+
+            Cv2.Resize(img, resizedImg, new Size(resizeW, resizeH));
 
             float ratioH = h / (float)resizeH;
             float ratioW = w / (float)resizeW;
+            resizeData.RatioW = ratioW;
+            resizeData.RatioH = ratioH;
 
-            return new RatioData(ratioH, ratioW);
         }
 
         /// <summary>
@@ -229,7 +277,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
         /// <param name="img">输入图像</param>
         /// <param name="minSideLen">最小边长限制</param>
         /// <returns>调整后的图像及缩放比例（原始高/新高，原始宽/新宽）</returns>
-        private RatioData IncreaseMinSide(Mat img, Mat resizedImg, float minSideLen = 30)
+        private void IncreaseMinSide(Mat img, Mat resizedImg, ResizeData resizeData, float minSideLen = 30)
         {
             int h = img.Height;
             int w = img.Width;
@@ -258,11 +306,12 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
             float ratioH = h / (float)resizeH;
             float ratioW = w / (float)resizeW;
 
-            return new RatioData(ratioH, ratioW);
+            resizeData.RatioH = ratioH;
+            resizeData.RatioW = ratioW;
         }
 
 
-        private PaddingData ApplyVerticalPadding(Mat processedImg, float widthHeightRatio, float minHeight)
+        private void ApplyVerticalPadding(Mat processedImg, float widthHeightRatio, float minHeight, ResizeData resizeData)
         {
             int h = processedImg.Height;
             int w = processedImg.Width;
@@ -280,12 +329,15 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                 AddRoundLetterbox(processedImg, processedImg, paddingTop, paddingTop, 0, 0);
 
                 paddingLeft = 0;
-                return new PaddingData(paddingTop, paddingLeft);
+                resizeData.PaddingLeft = paddingLeft;
+                resizeData.PaddingTop = paddingTop;
+
             }
             else
             {
                 // 返回原图像引用，表示未修改
-                return new PaddingData(0, 0);
+                resizeData.PaddingLeft = 0;
+                resizeData.PaddingTop = 0;
             }
         }
 

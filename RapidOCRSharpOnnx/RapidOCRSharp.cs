@@ -2,7 +2,6 @@
 using OpenCvSharp.ML;
 using RapidOCRSharpOnnx.Configurations;
 using RapidOCRSharpOnnx.Inference;
-using RapidOCRSharpOnnx.Models;
 using RapidOCRSharpOnnx.Providers;
 using RapidOCRSharpOnnx.Utils;
 using SkiaSharp;
@@ -37,6 +36,7 @@ namespace RapidOCRSharpOnnx
 
         public OcrResult RecognizeText(string imagePath, string savePath = null)
         {
+            ValidationUtils.ValidateImage(imagePath);
             using Mat image = Cv2.ImRead(imagePath);
             return RecognizeText(image, savePath);
         }
@@ -59,7 +59,6 @@ namespace RapidOCRSharpOnnx
                 for (int i = 0; i < detResult.Data.DetItems.Length; i++)
                 {
                     detResult.Data.DetItems[i].Word = recResults.Data[i].Label;
-                    
                 }
                 result.TextBlocks = string.Join(" ", recResults.Data.Select(r => r.Label));
 

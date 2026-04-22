@@ -38,11 +38,11 @@ namespace RapidOCRSharpOnnx.Providers
         {
             if (_intelDeviceType == IntelDeviceType.CPU)
             {
-                return new TextClassifierOrtVal(session, options, postprocess, preprocess, OcrConfig);
+                return new TextClassifierOrtVal(session, options, postprocess, preprocess, OcrConfig, GetDeviceType());
             }
             else
             {
-                return new TextClassifierIoBinding(session, options, postprocess, preprocess, OcrConfig);
+                return new TextClassifierIoBinding(session, options, postprocess, preprocess, OcrConfig, GetDeviceType());
             }
         }
 
@@ -50,11 +50,11 @@ namespace RapidOCRSharpOnnx.Providers
         {
             if (_intelDeviceType == IntelDeviceType.CPU)
             {
-                return new TextDetectorOrtVal(session, options, postprocess, preprocess);
+                return new TextDetectorOrtVal(session, options, postprocess, preprocess, OcrConfig, GetDeviceType());
             }
             else
             {
-                return new TextDetectorIoBinding(session, options, postprocess, preprocess);
+                return new TextDetectorIoBinding(session, options, postprocess, preprocess, OcrConfig, GetDeviceType());
             }
 
         }
@@ -63,11 +63,11 @@ namespace RapidOCRSharpOnnx.Providers
         {
             if (_intelDeviceType == IntelDeviceType.CPU)
             {
-                return new TextRecognizerOrtVal(session, options, postprocess, preprocess, OcrConfig);
+                return new TextRecognizerOrtVal(session, options, postprocess, preprocess, OcrConfig, GetDeviceType());
             }
             else
             {
-                return new TextRecognizerIoBinding(session, options, postprocess, preprocess, OcrConfig);
+                return new TextRecognizerIoBinding(session, options, postprocess, preprocess, OcrConfig, GetDeviceType());
             }
 
         }

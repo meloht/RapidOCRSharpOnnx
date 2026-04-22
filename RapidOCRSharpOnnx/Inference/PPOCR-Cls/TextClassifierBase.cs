@@ -2,6 +2,7 @@
 using OpenCvSharp;
 using RapidOCRSharpOnnx.Configurations;
 using RapidOCRSharpOnnx.Models;
+using RapidOCRSharpOnnx.Providers;
 using RapidOCRSharpOnnx.Utils;
 using System;
 using System.Collections.Generic;
@@ -16,21 +17,18 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
         protected IClsPreprocess _clsPreprocess;
         protected IClsPostprocess _clsPostprocess;
 
-        protected OcrConfig _ocrConfig;
         private static readonly int[] ClsImageShapev4 = [3, 48, 192];
         private static readonly int[] ClsImageShapev5 = [3, 80, 160];
 
         protected readonly int[] _clsImageShape;
-       
 
-
-        public TextClassifierBase(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OcrConfig ocrConfig)
-            : base(session, options)
+        public TextClassifierBase(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OcrConfig ocrConfig, DeviceType deviceType)
+            : base(session, options, ocrConfig, deviceType)
         {
             _clsPreprocess = preprocess;
             _clsPostprocess = postprocess;
             _ocrConfig = ocrConfig;
-           
+
 
             if (_ocrConfig.ClassifierConfig.OCRVersion == OCRVersion.PPOCRV5)
             {
@@ -46,7 +44,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
         public ResultPerf<ClsResult[]> TextClassify(DisposableList<Mat> imgList)
         {
             PerfModel perf = new PerfModel();
-          
+
             int[] indices = new int[imgList.Count];
             float[] widthList = new float[imgList.Count];
             for (int i = 0; i < indices.Length; i++)
@@ -79,13 +77,13 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
                 {
                     idx = _clsPreprocess.ResizeNormImg(imgList[indices[j]], idx, batchData, _clsImageShape);
                 }
-              
+
                 using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(batchData, new long[] { batchSize, img_c, img_h, img_w });
 
                 _stopwatch.Stop();
                 perf.Preprocess += _stopwatch.ElapsedMilliseconds;
 
-   
+
                 using var output = InferenceRun(inputOrtValue, perf);
 
                 _stopwatch.Restart();

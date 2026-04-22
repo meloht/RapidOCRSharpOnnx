@@ -2,6 +2,7 @@
 using OpenCvSharp;
 using RapidOCRSharpOnnx.Configurations;
 using RapidOCRSharpOnnx.Models;
+using RapidOCRSharpOnnx.Providers;
 using RapidOCRSharpOnnx.Utils;
 using System;
 using System.Collections.Generic;
@@ -16,10 +17,10 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
         protected IRecPreprocess _recPreprocess;
         protected IRecPostprocess _recPostprocess;
         protected readonly string[] _charList;
-        protected OcrConfig _ocrConfig;
+     
 
-        public TextRecognizerBase(InferenceSession session, SessionOptions options, IRecPostprocess postprocess, IRecPreprocess preprocess, OcrConfig ocrConfig)
-            : base(session, options)
+        public TextRecognizerBase(InferenceSession session, SessionOptions options, IRecPostprocess postprocess, IRecPreprocess preprocess, OcrConfig ocrConfig, DeviceType deviceType)
+            : base(session, options, ocrConfig, deviceType)
         {
             _recPreprocess = preprocess;
             _recPostprocess = postprocess;
@@ -53,7 +54,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
 
             Array.Sort(indices, (a, b) => widthList[a].CompareTo(widthList[b]));
             int imgCount = imgList.Count;
-          
+
             RecResult[] rec_res = new RecResult[imgCount];
             for (int i = 0; i < imgCount; i++)
             {

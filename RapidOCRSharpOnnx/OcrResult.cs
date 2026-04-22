@@ -1,9 +1,10 @@
 ﻿using RapidOCRSharpOnnx.Inference.PPOCR_Det;
+using RapidOCRSharpOnnx.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RapidOCRSharpOnnx.Models
+namespace RapidOCRSharpOnnx
 {
     public class OcrResult
     {

@@ -2,6 +2,7 @@
 using OpenCvSharp;
 using RapidOCRSharpOnnx.Configurations;
 using RapidOCRSharpOnnx.Models;
+using RapidOCRSharpOnnx.Providers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,8 +14,8 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
     public class TextDetectorOrtVal : TextDetectorBase, IOcrDetector
     {
 
-        public TextDetectorOrtVal(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess)
-            : base(session, options, postprocess, preprocess)
+        public TextDetectorOrtVal(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OcrConfig ocrConfig, DeviceType deviceType)
+            : base(session, options, postprocess, preprocess, ocrConfig, deviceType)
         {
 
         }

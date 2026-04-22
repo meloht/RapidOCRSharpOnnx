@@ -35,7 +35,7 @@ namespace RapidOCRSharpOnnx.Utils
         public void DrawTextBlock(Mat image, string savePath, DetResult detResult, RecResult[] recResults)
         {
             MapBoxesToOriginal(detResult, image.Height, image.Width);
-            var croppedImgList = MapImgToOriginal(detResult.ImgCropList, detResult.RatioH, detResult.RatioW);
+            var croppedImgList = MapImgToOriginal(detResult.ImgCropList, detResult.ResizeData.RatioH, detResult.ResizeData.RatioW);
             var resCorp = _textCalRecBox.CalRecBoxes(croppedImgList, recResults, detResult.DetItems);
 
             using var input = Convert(image);
@@ -82,8 +82,8 @@ namespace RapidOCRSharpOnnx.Utils
             {
                 for (int j = 0; j < det.DetItems[i].Box.Length; j++)
                 {
-                    det.DetItems[i].Box[j].X = Math.Clamp((det.DetItems[i].Box[j].X - det.PaddingLeft) * det.RatioW, 0, ori_w);
-                    det.DetItems[i].Box[j].Y = Math.Clamp((det.DetItems[i].Box[j].Y - det.PaddingTop) * det.RatioH, 0, ori_h);
+                    det.DetItems[i].Box[j].X = Math.Clamp((det.DetItems[i].Box[j].X - det.ResizeData.PaddingLeft) * det.ResizeData.RatioW, 0, ori_w);
+                    det.DetItems[i].Box[j].Y = Math.Clamp((det.DetItems[i].Box[j].Y - det.ResizeData.PaddingTop) * det.ResizeData.RatioH, 0, ori_h);
                 }
             }
         }

@@ -14,6 +14,19 @@ namespace RapidOCRSharpOnnx.Configurations
         public int MinSideLen { get; set; } = 30;
         public bool ReturnWordBox { get; set; } = false;
         public bool ReturnSingleCharBox { get; set; } = false;
+        private int _batchPoolSize = 30;
+        public int BatchPoolSize
+        {
+            get { return _batchPoolSize; }
+            set
+            {
+                if (value < 1 && value > 100)
+                {
+                    throw new ArgumentException("The BatchPoolSize must be between 1 and 100");
+                }
+                _batchPoolSize = value;
+            }
+        }
 
         public DetectorConfig DetectorConfig { get; set; }
 
