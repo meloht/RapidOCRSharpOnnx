@@ -1,0 +1,16 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace RapidOCRSharpOnnx.Models
+{
+    public class ResultPerf<T>
+    {
+        public T Data { get; set; }
+
+        public PerfModel Perf { get; set; }
+
+    }
+}

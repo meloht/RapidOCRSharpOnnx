@@ -32,19 +32,18 @@ namespace RapidOCRSharpOnnx.Utils
             _textCalRecBox = new TextCalRecBox(ocrConfig);
         }
 
-        public void DrawTextBlock(Mat image, string savePath, DetectResult detResult, RecResult[] recResults)
+        public void DrawTextBlock(Mat image, string savePath, DetResult detResult, RecResult[] recResults)
         {
-            UtilsHelper.MapBoxesToOriginal(detResult.DetPostprocessItems, detResult.RatioH, detResult.RatioW, detResult.PaddingTop, detResult.PaddingLeft, image.Height, image.Width);
-
-            var croppedImgList = UtilsHelper.MapImgToOriginal(detResult.ImgCropList, detResult.RatioH, detResult.RatioW);
-            var resCorp = _textCalRecBox.CalRecBoxes(croppedImgList, recResults, detResult.DetPostprocessItems);
+            MapBoxesToOriginal(detResult, image.Height, image.Width);
+            var croppedImgList = MapImgToOriginal(detResult.ImgCropList, detResult.RatioH, detResult.RatioW);
+            var resCorp = _textCalRecBox.CalRecBoxes(croppedImgList, recResults, detResult.DetItems);
 
             using var input = Convert(image);
 
             SKBitmap result = null;
             if (resCorp == null || resCorp.Count == 0)
             {
-                result = DrawOcrBoxTxt(input, detResult.DetPostprocessItems);
+                result = DrawOcrBoxTxt(input, detResult.DetItems);
             }
             else
             {
@@ -55,7 +54,39 @@ namespace RapidOCRSharpOnnx.Utils
 
             File.WriteAllBytes(savePath, data.ToArray());
         }
+        private Mat[] MapImgToOriginal(DisposableList<Mat> imgs, float ratioH, float ratioW)
+        {
+            Mat[] results = new Mat[imgs.Count];
+            for (int i = 0; i < imgs.Count; i++)
+            {
+                Mat img = imgs[i];
+                // 1. 获取当前图像的 高度、宽度
+                int imgH = img.Rows;    // 图像高度
+                int imgW = img.Cols;    // 图像宽度
 
+                // 2. 计算原始图像尺寸
+                int oriImgH = (int)Math.Round(imgH * ratioH);
+                int oriImgW = (int)Math.Round(imgW * ratioW);
+
+                // 3. 缩放回原始尺寸
+                Mat resizeImg = new Mat();
+                Cv2.Resize(img, resizeImg, new Size(oriImgW, oriImgH));
+
+                results[i] = resizeImg;
+            }
+            return results;
+        }
+        private void MapBoxesToOriginal(DetResult det, int ori_h, int ori_w)
+        {
+            for (int i = 0; i < det.DetItems.Length; i++)
+            {
+                for (int j = 0; j < det.DetItems[i].Box.Length; j++)
+                {
+                    det.DetItems[i].Box[j].X = Math.Clamp((det.DetItems[i].Box[j].X - det.PaddingLeft) * det.RatioW, 0, ori_w);
+                    det.DetItems[i].Box[j].Y = Math.Clamp((det.DetItems[i].Box[j].Y - det.PaddingTop) * det.RatioH, 0, ori_h);
+                }
+            }
+        }
         private SKBitmap DrawOcrBoxTxt(SKBitmap image, IEnumerable<DetBoxItem> items)
         {
             int w = image.Width;

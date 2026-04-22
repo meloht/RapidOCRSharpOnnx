@@ -4,10 +4,11 @@ using System.Text;
 
 namespace RapidOCRSharpOnnx.Models
 {
-    public struct ClsResult
+    public class ClsResult
     {
         public string Label { get; set; }
         public float Score { get; set; }
+
 
         public ClsResult(string label, float score)
         {

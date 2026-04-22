@@ -40,8 +40,9 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
             return new List<string>();
         }
 
-        public RecResult[] TextRecognize(DisposableList<Mat> imgList)
+        public ResultPerf<RecResult[]> TextRecognize(DisposableList<Mat> imgList)
         {
+            PerfModel perf = new PerfModel();
             int[] indices = new int[imgList.Count];
             float[] widthList = new float[imgList.Count];
             for (int i = 0; i < indices.Length; i++)
@@ -52,7 +53,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
 
             Array.Sort(indices, (a, b) => widthList[a].CompareTo(widthList[b]));
             int imgCount = imgList.Count;
-
+          
             RecResult[] rec_res = new RecResult[imgCount];
             for (int i = 0; i < imgCount; i++)
             {
@@ -66,6 +67,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
 
             for (int i = 0, imgIdx = 0; i < imgCount; i += _ocrConfig.RecognizerConfig.RecBatchNum)
             {
+                _stopwatch.Restart();
                 int endNo = Math.Min(imgCount, i + _ocrConfig.RecognizerConfig.RecBatchNum);
                 int batchSize = endNo - i;
 
@@ -94,21 +96,28 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
 
                 using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(batchData, new long[] { batchSize, img_c, img_h, img_width });
 
-                System.Diagnostics.Stopwatch sw = Stopwatch.StartNew();
-                using var outData = InferenceRun(inputOrtValue);
-                using var ortValue = outData[0];
-                sw.Stop();
-                Console.WriteLine($"Rec Inference time: {sw.ElapsedMilliseconds} ms");
+                _stopwatch.Stop();
+                perf.Preprocess += _stopwatch.ElapsedMilliseconds;
 
+                using var outData = InferenceRun(inputOrtValue, perf);
+                _stopwatch.Restart();
+
+                using var ortValue = outData[0];
                 var res = _recPostprocess.RecPostProcess(ortValue, wh_ratio_list, max_wh_ratio, _charList);
 
                 for (int j = 0; j < res.Length && imgIdx < imgCount; j++, imgIdx++)
                 {
                     rec_res[imgIdx] = res[j];
                 }
-            }
 
-            return rec_res;
+                _stopwatch.Stop();
+                perf.Postprocess += _stopwatch.ElapsedMilliseconds;
+            }
+            perf.SumTotal();
+            var resultPerf = new ResultPerf<RecResult[]>();
+            resultPerf.Data = rec_res;
+            resultPerf.Perf = perf;
+            return resultPerf;
         }
 
     }

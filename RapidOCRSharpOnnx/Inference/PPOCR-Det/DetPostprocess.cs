@@ -20,14 +20,14 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
             _detConfig = detConfig;
         }
 
-        public DetectResult PostProcess(Mat image, OrtValue output)
+        public DetResult PostProcess(Mat image, OrtValue output)
         {
             var res = DBPostProcess(output, image.Height, image.Width);
 
-            SortedBoxes(res.DetPostprocessItems);
+            SortedBoxes(res.DetItems);
             var imgCropList = new DisposableList<Mat>();
 
-            foreach (var item in res.DetPostprocessItems)
+            foreach (var item in res.DetItems)
             {
                 var imgCrop = GetRotateCropImage(image, item.Box);
                 imgCropList.Add(imgCrop);
@@ -36,7 +36,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
             return res;
         }
 
-        private DetectResult DBPostProcess(OrtValue output, int oriHeight, int oriWidth)
+        private DetResult DBPostProcess(OrtValue output, int oriHeight, int oriWidth)
         {
             List<Point2f[]> boxes = new List<Point2f[]>();
             List<float> scores = new List<float>();
@@ -187,7 +187,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
         /// <summary>
         /// 从二值化图提取检测框
         /// </summary>
-        private DetectResult ExtractBoxesFromMask(Mat matPred, Mat mask, int destWidth, int destHeight)
+        private DetResult ExtractBoxesFromMask(Mat matPred, Mat mask, int destWidth, int destHeight)
         {
             int height = mask.Rows;
             int width = mask.Cols;
@@ -235,7 +235,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                 }
             }
 
-            return new DetectResult(detPostprocessItems.ToArray());
+            return new DetResult(detPostprocessItems.ToArray());
         }
 
 

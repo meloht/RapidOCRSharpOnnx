@@ -1,6 +1,7 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using OpenCvSharp;
 using RapidOCRSharpOnnx.Configurations;
+using RapidOCRSharpOnnx.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -22,9 +23,9 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
             _binding.Dispose();
         }
 
-        protected override IDisposableReadOnlyCollection<OrtValue> InferenceRun(OrtValue inputOrtValue)
+        protected override IDisposableReadOnlyCollection<OrtValue> InferenceRun(OrtValue inputOrtValue, PerfModel perf)
         {
-            return InferenceRunCore(inputOrtValue,_binding);
+            return InferenceRunCore(inputOrtValue,_binding, perf);
         }
     }
 }

@@ -7,9 +7,9 @@ using System.Text;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 {
-    public class DetectResult
+    public class DetResult
     {
-        public DetBoxItem[] DetPostprocessItems { get; set; }
+        public DetBoxItem[] DetItems { get; set; }
         public DisposableList<Mat> ImgCropList { get; set; }
         public float RatioH { get; set; }
         public float RatioW { get; set; }
@@ -17,9 +17,9 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
         public int PaddingTop { get; set; }
         public int PaddingLeft { get; set; }
 
-        public DetectResult(DetBoxItem[] detPostprocessItems)
+        public DetResult(DetBoxItem[] detItems)
         {
-            DetPostprocessItems = detPostprocessItems;
+            DetItems = detItems;
         }
     }
 }

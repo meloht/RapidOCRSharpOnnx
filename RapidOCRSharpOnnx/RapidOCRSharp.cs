@@ -35,34 +35,41 @@ namespace RapidOCRSharpOnnx
             _ocrDrawerSkia = new OcrDrawerSkia(Configuration);
         }
 
-        public void RecognizeText(string imagePath, string savePath = null)
+        public OcrResult RecognizeText(string imagePath, string savePath = null)
         {
             using Mat image = Cv2.ImRead(imagePath);
-            RecognizeText(image, savePath);
+            return RecognizeText(image, savePath);
         }
-        public void RecognizeText(Mat image, string savePath = null)
+        public OcrResult RecognizeText(Mat image, string savePath = null)
         {
+            OcrResult result = new OcrResult();
             var detResult = _ocrDetector.TextDetect(image);
-            using (detResult.ImgCropList)
+            result.DetResults = detResult;
+            using (detResult.Data.ImgCropList)
             {
                 if (_ocrClassifier != null)
                 {
-                    var clsBoxes = _ocrClassifier.TextClassify(detResult.ImgCropList);
+                    var ClsResult = _ocrClassifier.TextClassify(detResult.Data.ImgCropList);
+                    result.ClsResults = ClsResult;
                 }
 
-                var recResults = _ocrRecognizer.TextRecognize(detResult.ImgCropList);
+                var recResults = _ocrRecognizer.TextRecognize(detResult.Data.ImgCropList);
+                result.RecResults = recResults;
 
-                for (int i = 0; i < detResult.DetPostprocessItems.Length; i++)
+                for (int i = 0; i < detResult.Data.DetItems.Length; i++)
                 {
-                    detResult.DetPostprocessItems[i].Word = recResults[i].Label;
+                    detResult.Data.DetItems[i].Word = recResults.Data[i].Label;
+                    
                 }
+                result.TextBlocks = string.Join(" ", recResults.Data.Select(r => r.Label));
 
                 if (!string.IsNullOrEmpty(savePath))
                 {
-                    _ocrDrawerSkia.DrawTextBlock(image, savePath, detResult, recResults);
+                    _ocrDrawerSkia.DrawTextBlock(image, savePath, detResult.Data, recResults.Data);
                 }
             }
-           
+
+            return result;
         }
 
         public void Dispose()

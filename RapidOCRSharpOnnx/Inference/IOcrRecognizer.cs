@@ -9,6 +9,6 @@ namespace RapidOCRSharpOnnx.Inference
 {
     public interface IOcrRecognizer : IDisposable
     {
-        RecResult[] TextRecognize(DisposableList<Mat> imgList);
+        ResultPerf<RecResult[]> TextRecognize(DisposableList<Mat> imgList);
     }
 }

@@ -8,6 +8,6 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 {
     public interface IDetPostprocess
     {
-        DetectResult PostProcess(Mat image, OrtValue output);
+        DetResult PostProcess(Mat image, OrtValue output);
     }
 }

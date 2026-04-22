@@ -119,24 +119,21 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
             if (confList.Count == 0)
                 confList = [0f];
 
-            Console.WriteLine("ConfList: " + string.Join(", ", confList));
             return confList;
         }
 
         private string GetCharList(int[] tokenIndices, bool[] selection, string[] charList)
         {
             StringBuilder txt = new StringBuilder();
-            StringBuilder sb = new StringBuilder();
+
             for (int i = 0; i < tokenIndices.Length; i++)
             {
                 if (selection[i])
                 {
                     txt.Append(charList[tokenIndices[i]]);
-                    sb.Append(tokenIndices[i]).Append(",");
                 }
             }
-            Console.WriteLine(txt.ToString());
-            Console.WriteLine(sb.ToString());
+
             return txt.ToString();
         }
 

@@ -12,8 +12,8 @@ namespace RapidOCRSharpOnnx.Configurations
         public int WidthHeightRatio { get; set; } = 8;
         public int MaxSideLen { get; set; } = 2000;
         public int MinSideLen { get; set; } = 30;
-        public bool ReturnWordBox { get; set; } = true;
-        public bool ReturnSingleCharBox { get; set; } = true;
+        public bool ReturnWordBox { get; set; } = false;
+        public bool ReturnSingleCharBox { get; set; } = false;
 
         public DetectorConfig DetectorConfig { get; set; }
 

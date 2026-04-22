@@ -68,40 +68,9 @@ namespace RapidOCRSharpOnnx.Utils
             return (float)Math.Sqrt(dx * dx + dy * dy);
         }
 
-        public static void MapBoxesToOriginal(DetBoxItem[] items, float ratioH, float ratioW, int paddingTop, int paddingLeft, int ori_h, int ori_w)
-        {
-            for (int i = 0; i < items.Length; i++)
-            {
-                for (int j = 0; j < items[i].Box.Length; j++)
-                {
-                    items[i].Box[j].X = Math.Clamp((items[i].Box[j].X - paddingLeft) * ratioW, 0, ori_w);
-                    items[i].Box[j].Y = Math.Clamp((items[i].Box[j].Y - paddingTop) * ratioH, 0, ori_h);
-                }
-            }
-        }
 
-        public static Mat[] MapImgToOriginal(Mat[] imgs, float ratioH, float ratioW)
-        {
-            Mat[] results = new Mat[imgs.Length];
-            for (int i = 0; i < imgs.Length; i++)
-            {
-                Mat img = imgs[i];
-                // 1. 获取当前图像的 高度、宽度
-                int imgH = img.Rows;    // 图像高度
-                int imgW = img.Cols;    // 图像宽度
 
-                // 2. 计算原始图像尺寸
-                int oriImgH = (int)Math.Round(imgH * ratioH);
-                int oriImgW = (int)Math.Round(imgW * ratioW);
 
-                // 3. 缩放回原始尺寸
-                Mat resizeImg = new Mat();
-                Cv2.Resize(img, resizeImg, new Size(oriImgW, oriImgH));
-
-                results[i] = resizeImg;
-            }
-            return results;
-        }
 
         public static SKBitmap MatToSKBitmapFast(Mat mat)
         {

@@ -5,6 +5,7 @@ using RapidOCRSharpOnnx.Models;
 using RapidOCRSharpOnnx.Utils;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
@@ -20,6 +21,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
         private static readonly int[] ClsImageShapev5 = [3, 80, 160];
 
         protected readonly int[] _clsImageShape;
+       
 
 
         public TextClassifierBase(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OcrConfig ocrConfig)
@@ -28,6 +30,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
             _clsPreprocess = preprocess;
             _clsPostprocess = postprocess;
             _ocrConfig = ocrConfig;
+           
 
             if (_ocrConfig.ClassifierConfig.OCRVersion == OCRVersion.PPOCRV5)
             {
@@ -40,8 +43,10 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
         }
 
 
-        public ClsResult[] TextClassify(DisposableList<Mat> imgList)
+        public ResultPerf<ClsResult[]> TextClassify(DisposableList<Mat> imgList)
         {
+            PerfModel perf = new PerfModel();
+          
             int[] indices = new int[imgList.Count];
             float[] widthList = new float[imgList.Count];
             for (int i = 0; i < indices.Length; i++)
@@ -64,25 +69,38 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
             int idx = 0;
             for (int i = 0; i < imgCount; i += _ocrConfig.ClassifierConfig.ClsBatchNum)
             {
+                _stopwatch.Restart();
                 int endNo = Math.Min(imgCount, i + _ocrConfig.ClassifierConfig.ClsBatchNum);
                 int batchSize = endNo - i;
                 float[] batchData = new float[batchSize * img_c * img_h * img_w];
-
 
                 idx = 0;
                 for (int j = i; j < endNo; j++)
                 {
                     idx = _clsPreprocess.ResizeNormImg(imgList[indices[j]], idx, batchData, _clsImageShape);
                 }
-
+              
                 using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(batchData, new long[] { batchSize, img_c, img_h, img_w });
-                using var output = InferenceRun(inputOrtValue);
+
+                _stopwatch.Stop();
+                perf.Preprocess += _stopwatch.ElapsedMilliseconds;
+
+   
+                using var output = InferenceRun(inputOrtValue, perf);
+
+                _stopwatch.Restart();
                 using var ortValue = output[0];
                 _clsPostprocess.ClsPostProcess(ortValue, i, imgList, cls_res);
 
-            }
+                _stopwatch.Stop();
+                perf.Postprocess += _stopwatch.ElapsedMilliseconds;
 
-            return cls_res;
+            }
+            perf.SumTotal();
+            var resultPerf = new ResultPerf<ClsResult[]>();
+            resultPerf.Data = cls_res;
+            resultPerf.Perf = perf;
+            return resultPerf;
         }
 
     }

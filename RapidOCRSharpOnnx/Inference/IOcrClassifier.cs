@@ -9,6 +9,6 @@ namespace RapidOCRSharpOnnx.Inference
 {
     public interface IOcrClassifier : IDisposable
     {
-        ClsResult[] TextClassify(DisposableList<Mat> imgList);
+        ResultPerf<ClsResult[]> TextClassify(DisposableList<Mat> imgList);
     }
 }
