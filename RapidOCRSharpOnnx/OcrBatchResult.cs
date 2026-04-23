@@ -11,7 +11,7 @@ namespace RapidOCRSharpOnnx
     public class OcrBatchResult
     {
         public string ImagePath { get; set; }
-        public string TextBlocks { get; set; }
+        public string TextBlocks { get; set; } = string.Empty;
 
         public DetResult DetResult { get; set; }
 

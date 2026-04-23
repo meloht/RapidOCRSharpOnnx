@@ -81,9 +81,9 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
             return idx;
         }
 
-        public async Task PreprocessBatchAsync(DisposableList<Mat> ImgCropList, DeviceType deviceType, OcrBatchResult batchResult, ChannelWriter<ClsPreResultBatch> writer)
+        public void PreprocessBatchAsync(DisposableList<Mat> ImgCropList, DeviceType deviceType, OcrBatchResult batchResult, ChannelWriter<ClsPreResultBatch> writer)
         {
-            await PreprocessBatchBaseAsync(ImgCropList, deviceType, writer, batchResult, PreprocessChannel);
+            PreprocessBatchBaseAsync(ImgCropList, deviceType, writer, batchResult, PreprocessChannel);
         }
         protected ClsPreResultBatch PreprocessChannel(Mat img, OcrBatchResult batchResult)
         {

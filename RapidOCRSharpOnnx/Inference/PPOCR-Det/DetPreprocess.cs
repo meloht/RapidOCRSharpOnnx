@@ -30,9 +30,9 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
             return data;
         }
 
-        public async Task PreprocessBatchAsync(List<string> listImg, DeviceType deviceType, ChannelWriter<DetPreResultBatch> writer)
+        public void PreprocessBatchAsync(List<string> listImg, DeviceType deviceType, ChannelWriter<DetPreResultBatch> writer)
         {
-            await PreprocessBatchBaseAsync(listImg, deviceType, writer, null, PreprocessChannel);
+             PreprocessBatchBaseAsync(listImg, deviceType, writer, null, PreprocessChannel);
         }
         protected DetPreResultBatch PreprocessChannel(string imgPath,object obj)
         {

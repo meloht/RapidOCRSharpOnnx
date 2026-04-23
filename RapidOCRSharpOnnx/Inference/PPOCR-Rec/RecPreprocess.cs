@@ -12,7 +12,7 @@ using System.Threading.Channels;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
 {
-    public class RecPreprocess: PreprocessBatchCore<Mat, OcrBatchResult, RecPreResultBatch>, IRecPreprocess
+    public class RecPreprocess : PreprocessBatchCore<Mat, OcrBatchResult, RecPreResultBatch>, IRecPreprocess
     {
         private RecognizerConfig _recConfig;
         public RecPreprocess(RecognizerConfig recConfig)
@@ -66,21 +66,28 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
             return idx;
         }
 
-        public async Task PreprocessBatchAsync(DisposableList<Mat> ImgCropList, DeviceType deviceType, OcrBatchResult batchResult, ChannelWriter<RecPreResultBatch> writer)
+        public void PreprocessBatchAsync(DisposableList<Mat> ImgCropList, DeviceType deviceType, OcrBatchResult batchResult, ChannelWriter<RecPreResultBatch> writer)
         {
-            await PreprocessBatchBaseAsync(ImgCropList, deviceType, writer, batchResult, PreprocessChannel);
+            PreprocessBatchBaseAsync(ImgCropList, deviceType, writer, batchResult, PreprocessChannel);
         }
         protected RecPreResultBatch PreprocessChannel(Mat img, OcrBatchResult batchResult)
         {
+
             int img_c = _recConfig.RecImgShape[0];
             int img_h = _recConfig.RecImgShape[1];
             int img_w = _recConfig.RecImgShape[2];
             float max_wh_ratio = (float)img_w / (float)img_h;
             float wh_ratio = (float)img.Width / (float)img.Height;
             max_wh_ratio = Math.Max(max_wh_ratio, wh_ratio);
-            float[] inputData = new float[img_c * img_h * img_w];
+
+            int img_width = (int)(img_h * max_wh_ratio);
+            int tensorLength = img_c * img_h * img_width;
+
+            float[] inputData = new float[tensorLength];
             ResizeNormImg(img, 0, inputData, max_wh_ratio);
             return new RecPreResultBatch(batchResult, inputData, max_wh_ratio, wh_ratio);
+
+
         }
     }
 }

@@ -12,6 +12,6 @@ namespace RapidOCRSharpOnnx.Inference
     {
         ResultPerf<RecResult[]> TextRecognize(DisposableList<Mat> imgList);
 
-        Task BatchRecAsync(OcrBatchResult batchResult);
+        void BatchRecAsync(OcrBatchResult batchResult);
     }
 }

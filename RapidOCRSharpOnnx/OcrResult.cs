@@ -8,7 +8,7 @@ namespace RapidOCRSharpOnnx
 {
     public class OcrResult
     {
-        public string TextBlocks { get; set; }
+        public string TextBlocks { get; set; } = string.Empty;
 
         public ResultPerf<DetResult> DetResult { get; set; }
 
@@ -18,7 +18,7 @@ namespace RapidOCRSharpOnnx
 
         public override string ToString()
         {
-            return $"TextBlocks: {TextBlocks} DetPerf: {DetResult.Perf}, ClsPerf: {ClsResult.Perf}, RecPerf: {RecResult.Perf}";
+            return $"TextBlocks: {TextBlocks} DetPerf: {DetResult?.Perf}, ClsPerf: {ClsResult?.Perf}, RecPerf: {RecResult?.Perf}";
         }
 
     }

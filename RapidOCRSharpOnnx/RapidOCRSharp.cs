@@ -38,6 +38,20 @@ namespace RapidOCRSharpOnnx
             return _executePipeline.RecognizeText(image, savePath);
         }
 
+        public OcrBatchResult[] BatchAsync(List<string> imageList)
+        {
+            return _executePipeline.BatchAsync(imageList);
+        }
+
+        //public async IAsyncEnumerable<OcrBatchResult> BatchForeachAsync(List<string> imageList)
+        //{
+        //    await foreach (var result in _executePipeline.BatchForeachAsync(imageList))
+        //    {
+        //        yield return result;
+        //    }
+        //}
+
+
         public void Dispose()
         {
             _executePipeline.Dispose();

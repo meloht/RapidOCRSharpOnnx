@@ -10,8 +10,13 @@ namespace RapidOCRSharpOnnx.Inference
 {
     public class PreprocessBatchCore<T1, T2, TResult>
     {
-        protected async Task PreprocessBatchBaseAsync(List<T1> listImg, DeviceType deviceType, ChannelWriter<TResult> writer, T2 t2, Func<T1, T2, TResult> preprocess)
+        protected void PreprocessBatchBaseAsync(List<T1> listImg, DeviceType deviceType, ChannelWriter<TResult> writer, T2 t2, Func<T1, T2, TResult> preprocess)
         {
+            if (listImg == null || listImg.Count == 0)
+            {
+                writer.Complete();
+                return;
+            }
             var arr = GetPreprocessWorkersSize(listImg, deviceType);
             Task[] tasks = new Task[arr.Count()];
             int idx = 0;
@@ -19,13 +24,14 @@ namespace RapidOCRSharpOnnx.Inference
             {
                 tasks[idx++] = RunPreprocessSplitAsync(subList, writer, preprocess, t2);
             }
-            await Task.WhenAll(tasks);
+
+            Task.WaitAll(tasks);
 
             writer.Complete();
         }
-        private async Task RunPreprocessSplitAsync(IEnumerable<T1> list, ChannelWriter<TResult> writer, Func<T1, T2, TResult> preprocess, T2 t2)
+        private Task RunPreprocessSplitAsync(IEnumerable<T1> list, ChannelWriter<TResult> writer, Func<T1, T2, TResult> preprocess, T2 t2)
         {
-            await Task.Run(async () =>
+            return Task.Run(async () =>
             {
                 foreach (T1 item in list)
                 {
@@ -58,6 +64,10 @@ namespace RapidOCRSharpOnnx.Inference
             if (size < 1)
             {
                 size = listImg.Count;
+            }
+            if (size == 0)
+            {
+                return [[.. listImg]];
             }
             return listImg.Chunk(size);
         }

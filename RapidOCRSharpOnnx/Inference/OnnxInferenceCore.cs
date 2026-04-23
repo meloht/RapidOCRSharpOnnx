@@ -70,23 +70,6 @@ namespace RapidOCRSharpOnnx.Inference
         }
 
 
-        protected BoundedChannelOptions GetChannelOptions(int batchPoolSize)
-        {
-            var channelOptions = new BoundedChannelOptions(batchPoolSize)
-            {
-                SingleWriter = false,
-                SingleReader = true,
-                AllowSynchronousContinuations = false,
-                FullMode = BoundedChannelFullMode.Wait
-            };
-            
-            return channelOptions;
-        }
-
-
-       
-
-
         public void DisposeBase()
         {
             _session?.Dispose();

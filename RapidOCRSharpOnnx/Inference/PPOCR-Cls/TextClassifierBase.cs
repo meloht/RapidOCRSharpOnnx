@@ -1,5 +1,6 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using OpenCvSharp;
+using OpenCvSharp.Flann;
 using RapidOCRSharpOnnx.Configurations;
 using RapidOCRSharpOnnx.Inference.PPOCR_Cls.Models;
 using RapidOCRSharpOnnx.Inference.PPOCR_Det.Models;
@@ -95,7 +96,20 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
         }
 
 
-        public async Task BatchClsAsync(OcrBatchResult batchResult, Channel<OcrBatchResult> channelClsPre, ChannelWriter<OcrBatchResult> nextChannelWriter)
+        public void BatchClsAsync(OcrBatchResult batchResult, ChannelWriter<OcrBatchResult> recChannelWriter)
+        {
+
+            Channel<ClsPreResultBatch> channelPre = Channel.CreateBounded<ClsPreResultBatch>(UtilsHelper.GetChannelOptions(_ocrConfig.BatchPoolSize));
+            var producer = Task.Run(() => _clsPreprocess.PreprocessBatchAsync(batchResult.DetResult.ImgCropList, _deviceType, batchResult, channelPre.Writer));
+
+            var consumer = WriteRecAsync(batchResult, channelPre, recChannelWriter);
+
+            Task.WaitAll(producer, consumer);
+            recChannelWriter.Complete();
+            Console.WriteLine($"{DateTime.Now} recChannelWriter.Complete()");
+
+        }
+        private async Task WriteRecAsync(OcrBatchResult batchResult, Channel<ClsPreResultBatch> channelPre, ChannelWriter<OcrBatchResult> recChannelWriter)
         {
             int idx = 0;
             int count = batchResult.DetResult.ImgCropList.Count;
@@ -104,29 +118,24 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
             int img_w = _clsImageShape[2];
 
             batchResult.ClsResult = new ClsResult[count];
-            Task[] tasks = new Task[count + 2];
 
-            Channel<ClsPreResultBatch> channelPre = Channel.CreateBounded<ClsPreResultBatch>(GetChannelOptions(_ocrConfig.BatchPoolSize));
-            var producer = _clsPreprocess.PreprocessBatchAsync(batchResult.DetResult.ImgCropList, _deviceType, batchResult, channelPre.Writer);
-
-            tasks[idx] = producer;
-            Interlocked.Increment(ref idx);
-            var consumer = Task.Run(async () =>
+            await foreach (ClsPreResultBatch item in channelPre.Reader.ReadAllAsync())
             {
-                await foreach (ClsPreResultBatch item in channelPre.Reader.ReadAllAsync())
-                {
-                    using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(item.InputData, new long[] { 1, img_c, img_h, img_w });
+                using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(item.InputData, new long[] { 1, img_c, img_h, img_w });
+                Console.WriteLine($"{DateTime.Now} Cls batch {idx}");
+                var output0 = InferenceRun(inputOrtValue, null);
+                //await BatchPostProcessAsync(output0, item.BatchResult, item.img, idx, recChannelWriter);
 
-                    var output0 = InferenceRun(inputOrtValue, null);
-                    var task = BatchPostProcessAsync(output0, item.BatchResult, item.img, idx - 1, nextChannelWriter);
-                    Interlocked.Increment(ref idx);
+                using var ortValue = output0[0];
+                item.BatchResult.ClsResult[idx] = _clsPostprocess.ClsPostProcess(ortValue, item.img);
+                Console.WriteLine($"{DateTime.Now} Cls batch Write {idx}");
+                await recChannelWriter.WriteAsync(item.BatchResult);
 
-                }
-            });
-            tasks[idx] = consumer;
-            await Task.WhenAll(tasks);
+                Interlocked.Increment(ref idx);
 
-            nextChannelWriter.Complete();
+            }
+
+          
         }
 
         private async Task BatchPostProcessAsync(IDisposableReadOnlyCollection<OrtValue> output, OcrBatchResult item, Mat img, int index, ChannelWriter<OcrBatchResult> writer)
@@ -137,6 +146,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
                 {
                     using var ortValue = output[0];
                     item.ClsResult[index] = _clsPostprocess.ClsPostProcess(ortValue, img);
+                    Console.WriteLine($"Cls batch Write {index}");
                     await writer.WriteAsync(item);
                 }
             });

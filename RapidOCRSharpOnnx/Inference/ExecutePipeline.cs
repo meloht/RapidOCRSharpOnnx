@@ -33,71 +33,100 @@ namespace RapidOCRSharpOnnx.Inference
             _ocrDrawerSkia = new OcrDrawerSkia(_ocrConfig);
         }
 
-        public async Task<OcrBatchResult[]> BatchAsync(List<string> imageList)
+        public  OcrBatchResult[] BatchAsync(List<string> imageList)
         {
             Channel<OcrBatchResult> channelRecPre = Channel.CreateBounded<OcrBatchResult>(UtilsHelper.GetChannelOptions(_ocrConfig.BatchPoolSize));
 
             OcrBatchResult[] batchResults = new OcrBatchResult[imageList.Count];
-            List<Task> tasks = ExecuteTask(imageList, channelRecPre, batchResults);
-
-            var consumerRec = Task.Run(async () =>
-            {
-                await foreach (OcrBatchResult item in channelRecPre.Reader.ReadAllAsync())
-                {
-                    await _ocrRecognizer.BatchRecAsync(item);
-                }
-            });
-
-            tasks.Add(consumerRec);
-
-            await Task.WhenAll(tasks);
-
-            return batchResults;
-        }
-
-        private List<Task> ExecuteTask(List<string> imageList, Channel<OcrBatchResult> channelRecPre, OcrBatchResult[] batchResults)
-        {
-            Channel<OcrBatchResult> channelDetNext = channelRecPre;
+            Channel<OcrBatchResult> channelDetNext = null;
             if (_ocrClassifier != null)
             {
                 channelDetNext = Channel.CreateBounded<OcrBatchResult>(UtilsHelper.GetChannelOptions(_ocrConfig.BatchPoolSize));
             }
+            else
+            {
+                channelDetNext = channelRecPre;
+            }
 
             List<Task> tasks = new List<Task>();
-            tasks.Add(_ocrDetector.BatchDetectAsync(imageList, channelDetNext.Writer, batchResults));
-
+            var task = Task.Run(() => _ocrDetector.BatchDetectAsync(imageList, channelDetNext.Writer, batchResults));
+            tasks.Add(task);
             if (_ocrClassifier != null)
             {
-                var consumerCls = Task.Run(async () =>
-                {
-                    await foreach (OcrBatchResult item in channelDetNext.Reader.ReadAllAsync())
-                    {
-
-                        await _ocrClassifier.BatchClsAsync(item, channelDetNext, channelRecPre.Writer);
-                    }
-                });
+                var consumerCls = BatchClsRead(channelDetNext, channelRecPre.Writer);
 
                 tasks.Add(consumerCls);
             }
-            return tasks;
+
+            var consumerRec = BatchRecRead(channelRecPre);
+
+            tasks.Add(consumerRec);
+
+            Task.WaitAll(tasks.ToArray());
+
+
+            return batchResults;
         }
 
-        public async IAsyncEnumerable<OcrBatchResult> BatchForeachAsync(List<string> imageList)
+        private async Task BatchRecRead(Channel<OcrBatchResult> channelRecPre)
         {
-            Channel<OcrBatchResult> channelRecPre = Channel.CreateBounded<OcrBatchResult>(UtilsHelper.GetChannelOptions(_ocrConfig.BatchPoolSize));
-           
-            OcrBatchResult[] batchResults = new OcrBatchResult[imageList.Count];
-
-            List<Task> tasks = ExecuteTask(imageList, channelRecPre, batchResults);
-           
             await foreach (OcrBatchResult item in channelRecPre.Reader.ReadAllAsync())
             {
-                await _ocrRecognizer.BatchRecAsync(item);
-                yield return item;
+                _ocrRecognizer.BatchRecAsync(item);
             }
-
-            await Task.WhenAll(tasks);
         }
+
+        private async Task BatchClsRead(Channel<OcrBatchResult> channel, ChannelWriter<OcrBatchResult> recChannelWriter)
+        {
+            await foreach (OcrBatchResult item in channel.Reader.ReadAllAsync())
+            {
+                 _ocrClassifier.BatchClsAsync(item, recChannelWriter);
+            }
+        }
+
+        //public async IAsyncEnumerable<OcrBatchResult> BatchForeachAsync(List<string> imageList)
+        //{
+        //    Channel<OcrBatchResult> channelRecPre = Channel.CreateBounded<OcrBatchResult>(UtilsHelper.GetChannelOptions(_ocrConfig.BatchPoolSize));
+
+        //    OcrBatchResult[] batchResults = new OcrBatchResult[imageList.Count];
+        //    Channel<OcrBatchResult> channelDetNext = null;
+        //    if (_ocrClassifier != null)
+        //    {
+        //        channelDetNext = Channel.CreateBounded<OcrBatchResult>(UtilsHelper.GetChannelOptions(_ocrConfig.BatchPoolSize));
+        //    }
+        //    else
+        //    {
+        //        channelDetNext = channelRecPre;
+        //    }
+
+        //    List<Task> tasks = new List<Task>();
+        //    _ = Task.Run(() => _ocrDetector.BatchDetectAsync(imageList, channelDetNext.Writer, batchResults));
+
+        //    if (_ocrClassifier != null)
+        //    {
+        //        var consumerCls = Task.Run(async () =>
+        //        {
+        //            await foreach (OcrBatchResult item in channelDetNext.Reader.ReadAllAsync())
+        //            {
+        //                _ocrClassifier.BatchClsAsync(item, channelRecPre.Writer);
+        //            }
+        //        });
+
+        //        tasks.Add(consumerCls);
+        //    }
+
+        //    await foreach (OcrBatchResult item in channelRecPre.Reader.ReadAllAsync())
+        //    {
+        //        _ocrRecognizer.BatchRecAsync(item);
+        //        yield return item;
+        //    }
+        //    await Task.WhenAll(tasks);
+        //    channelRecPre.Writer.Complete();
+        //    if (_ocrClassifier != null)
+        //    {
+        //        channelDetNext.Writer.Complete();
+        //    }
+        //}
 
         public OcrResult RecognizeText(string imagePath, string savePath = null)
         {
@@ -110,8 +139,13 @@ namespace RapidOCRSharpOnnx.Inference
             OcrResult result = new OcrResult();
             var detResult = _ocrDetector.TextDetect(image);
             result.DetResult = detResult;
+            if (detResult.Data.ImgCropList == null || detResult.Data.ImgCropList.Count == 0)
+            {
+                return result;
+            }
             using (detResult.Data.ImgCropList)
             {
+
                 if (_ocrClassifier != null)
                 {
                     var ClsResult = _ocrClassifier.TextClassify(detResult.Data.ImgCropList);
