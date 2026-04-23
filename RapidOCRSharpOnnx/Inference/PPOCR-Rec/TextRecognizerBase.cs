@@ -114,7 +114,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
 
                 for (int j = 0; j < res.Length && imgIdx < imgCount; j++, imgIdx++)
                 {
-                    rec_res[imgIdx] = res[j];
+                    rec_res[indices[imgIdx]] = res[j];
                 }
 
                 _stopwatch.Stop();
