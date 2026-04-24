@@ -12,7 +12,7 @@ using System.Threading.Channels;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
 {
-    public class RecPreprocess : PreprocessBatchCore<ImageIndex, OcrBatchResult, RecPreResultBatch>, IRecPreprocess
+    public class RecPreprocess : PreprocessBatchCore<ImageIndex, RecPreResultBatch>, IRecPreprocess
     {
         private RecognizerConfig _recConfig;
         public RecPreprocess(RecognizerConfig recConfig)
@@ -64,12 +64,17 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
         }
 
 
-        public void PreprocessBatchAsync(DisposableList<ImageIndex> imgCropList, DeviceType deviceType, OcrBatchResult batchResult, ChannelWriter<RecPreResultBatch> writer)
+        public void PreprocessBatchAsync(DisposableList<ImageIndex> imgCropList, DeviceType deviceType, ChannelWriter<RecPreResultBatch> writer)
         {
 
-            PreprocessBatchBaseAsync(imgCropList, deviceType, writer, batchResult, PreprocessChannel);
+            PreprocessBatchBaseAsync(imgCropList, deviceType, writer, PreprocessChannel);
         }
-        protected RecPreResultBatch PreprocessChannel(ImageIndex batchImage, OcrBatchResult batchResult)
+        protected RecPreResultBatch PreprocessChannel(ImageIndex batchImage)
+        {
+            return PreprocessSeq(batchImage);
+        }
+
+        public RecPreResultBatch PreprocessSeq(ImageIndex batchImage)
         {
             Mat img = batchImage.Image;
             int img_c = _recConfig.RecImgShape[0];
@@ -84,9 +89,8 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
 
             float[] inputData = new float[tensorLength];
             ResizeNormImg(img, 0, inputData, img_width, img_width);
-            return new RecPreResultBatch(batchResult, inputData, batchImage.Index, max_wh_ratio, wh_ratio);
 
-
+            return new RecPreResultBatch(inputData, batchImage.Index, max_wh_ratio, wh_ratio, img_width);
         }
     }
 }

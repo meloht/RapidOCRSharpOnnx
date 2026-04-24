@@ -7,5 +7,5 @@ using System.Threading.Tasks;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec.Models
 {
-    public record RecPreResultBatch(OcrBatchResult BatchResult, float[] InputData,int Index, float MaxWhRatio, float WhRatio);
+    public record RecPreResultBatch(float[] InputData,int Index, float MaxWhRatio, float WhRatio,int ImgWidth);
 }

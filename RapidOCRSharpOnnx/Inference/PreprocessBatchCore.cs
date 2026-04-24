@@ -9,41 +9,41 @@ using System.Threading.Tasks;
 
 namespace RapidOCRSharpOnnx.Inference
 {
-    public class PreprocessBatchCore<T1, T2, TResult>
+    public class PreprocessBatchCore<T, TResult>
     {
-        protected void PreprocessBatchBaseAsync(IList<T1> listImg, DeviceType deviceType, ChannelWriter<TResult> writer, T2 t2, Func<T1, T2, TResult> preprocess)
+        protected void PreprocessBatchBaseAsync(IList<T> listImg, DeviceType deviceType, ChannelWriter<TResult> writer, Func<T, TResult> preprocess)
         {
             if (listImg == null || listImg.Count == 0)
             {
                 writer.Complete();
                 return;
             }
-            
+
             var arr = GetPreprocessWorkersSize(listImg, deviceType);
             Task[] tasks = new Task[arr.Count()];
             int idx = 0;
-            foreach (T1[] subList in arr)
+            foreach (T[] subList in arr)
             {
-                tasks[idx++] = RunPreprocessSplitAsync(subList, writer, preprocess, t2);
+                tasks[idx++] = RunPreprocessSplitAsync(subList, writer, preprocess);
             }
 
             Task.WaitAll(tasks);
 
             writer.Complete();
         }
-        private Task RunPreprocessSplitAsync(IList<T1> list, ChannelWriter<TResult> writer, Func<T1, T2, TResult> preprocess, T2 t2)
+        private Task RunPreprocessSplitAsync(IList<T> list, ChannelWriter<TResult> writer, Func<T, TResult> preprocess)
         {
             return Task.Run(async () =>
             {
-                foreach (T1 item in list)
+                foreach (T item in list)
                 {
-                    TResult res = preprocess(item, t2);
+                    TResult res = preprocess(item);
                     await writer.WriteAsync(res);
                 }
 
             });
         }
-        private IEnumerable<T1[]> GetPreprocessWorkersSize(IList<T1> listImg, DeviceType deviceType)
+        private IEnumerable<T[]> GetPreprocessWorkersSize(IList<T> listImg, DeviceType deviceType)
         {
             int preprocessWorkers = Environment.ProcessorCount;
             if (deviceType == DeviceType.CPU)

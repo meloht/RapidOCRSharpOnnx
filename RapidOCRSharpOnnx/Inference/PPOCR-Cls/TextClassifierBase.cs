@@ -41,7 +41,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
             PerfModel perf = new PerfModel();
 
             float[] widthList = new float[imgList.Count];
-  
+
             int imgCount = imgList.Count;
             ClsResult[] cls_res = new ClsResult[imgCount];
             for (int i = 0; i < imgCount; i++)
@@ -126,9 +126,10 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
 
         public void BatchClsAsync(OcrBatchResult batchResult, ChannelWriter<OcrBatchResult> recChannelWriter)
         {
-
+            int count = batchResult.DetResult.ImgCropList.Count;
+            batchResult.ClsResult = new ClsResult[count];
             Channel<ClsPreResultBatch> channelPre = Channel.CreateBounded<ClsPreResultBatch>(UtilsHelper.GetChannelOptions(_ocrConfig.BatchPoolSize));
-            var producer = Task.Run(() => _clsPreprocess.PreprocessBatchAsync(batchResult.DetResult.ImgCropList, _deviceType, batchResult, channelPre.Writer));
+            var producer = Task.Run(() => _clsPreprocess.PreprocessBatchAsync(batchResult.DetResult.ImgCropList, _deviceType, channelPre.Writer));
 
             var consumer = WriteRecAsync(batchResult, channelPre, recChannelWriter);
 
@@ -138,12 +139,9 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
         }
         private async Task WriteRecAsync(OcrBatchResult batchResult, Channel<ClsPreResultBatch> channelPre, ChannelWriter<OcrBatchResult> recChannelWriter)
         {
-            int count = batchResult.DetResult.ImgCropList.Count;
             int img_c = _clsImageShape[0];
             int img_h = _clsImageShape[1];
             int img_w = _clsImageShape[2];
-
-            batchResult.ClsResult = new ClsResult[count];
 
             await foreach (ClsPreResultBatch item in channelPre.Reader.ReadAllAsync())
             {
@@ -153,14 +151,10 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
                 //await BatchPostProcessAsync(output0, item.BatchResult, item.img, idx, recChannelWriter);
 
                 using var ortValue = output0[0];
-                item.BatchResult.ClsResult[item.ImageIndex.Index] = _clsPostprocess.ClsPostProcess(ortValue, item.ImageIndex.Image);
+                batchResult.ClsResult[item.ImageIndex.Index] = _clsPostprocess.ClsPostProcess(ortValue, item.ImageIndex.Image);
                 Console.WriteLine($"{DateTime.Now} Cls batch Write {item.ImageIndex.Index}");
-                await recChannelWriter.WriteAsync(item.BatchResult);
-
-
-
             }
-
+            await recChannelWriter.WriteAsync(batchResult);
 
         }
 

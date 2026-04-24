@@ -8,6 +8,6 @@ using System.Threading.Tasks;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls.Models
 {
-    public record ClsPreResultBatch(OcrBatchResult BatchResult, float[] InputData, ImageIndex ImageIndex);
+    public record ClsPreResultBatch(float[] InputData, ImageIndex ImageIndex);
 
 }

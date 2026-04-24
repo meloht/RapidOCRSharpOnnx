@@ -12,8 +12,8 @@ namespace RapidOCRSharpOnnx.ConsoleApp
         static void Main(string[] args)
         {
             var buildNumber = Environment.OSVersion.Version.Build;
-            //TestBatch();
-            TestImage();
+            TestBatch();
+            //TestImage();
         }
 
         private static void TestImage()
@@ -30,7 +30,7 @@ namespace RapidOCRSharpOnnx.ConsoleApp
             using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderCPU(new OcrConfig(detectPath, recogPath, LangRec.CH, OCRVersion.PPOCRV5, clsPath)));
 
             string resPath = $"res_{Path.GetFileName(imgPath)}";
-            var result = ocr.RecognizeText(imgPath, resPath);
+            var result = ocr.RecognizeTextSeq(imgPath, resPath);
             Console.WriteLine($"result: {result.ToString()}");
         }
 
@@ -47,7 +47,7 @@ namespace RapidOCRSharpOnnx.ConsoleApp
 
             using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderDirectML(new OcrConfig(detectPath, recogPath, LangRec.CH, OCRVersion.PPOCRV5, clsPath), _deviceId));
             var list = Directory.GetFiles(@"D:\code\model\OCRTestImages");
-            var resPath = ocr.BatchAsync(list.ToList(), @"D:\code\model\OCRTestImages\Results");
+            var resPath = ocr.BatchAsync(list.ToList(), @"D:\code\model\OCRTestImagesResults");
 
             foreach (var item in resPath)
             {
