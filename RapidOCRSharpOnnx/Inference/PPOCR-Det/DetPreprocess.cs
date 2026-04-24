@@ -10,7 +10,7 @@ using System.Threading.Channels;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 {
-    public class DetPreprocess : PreprocessBatchCore<string, object, DetPreResultBatch>, IDetPreprocess
+    public class DetPreprocess : PreprocessBatchCore<ImagePathIndex, DetPreResultBatch>, IDetPreprocess
     {
         private OcrConfig _ocrConfig;
         private Scalar _paddingColor;
@@ -30,16 +30,16 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
             return data;
         }
 
-        public void PreprocessBatchAsync(List<string> listImg, DeviceType deviceType, ChannelWriter<DetPreResultBatch> writer)
+        public void PreprocessBatchAsync(List<ImagePathIndex> listImg, DeviceType deviceType, ChannelWriter<DetPreResultBatch> writer)
         {
-             PreprocessBatchBaseAsync(listImg, deviceType, writer, null, PreprocessChannel);
+            PreprocessBatchBaseAsync(listImg, deviceType, writer, PreprocessChannel);
         }
-        protected DetPreResultBatch PreprocessChannel(string imgPath,object obj)
+        protected DetPreResultBatch PreprocessChannel(ImagePathIndex imagePath)
         {
-            using Mat img = Cv2.ImRead(imgPath);
+            using Mat img = Cv2.ImRead(imagePath.ImagePath);
             Mat resizedImg = img.Clone();
             var res = Preprocess(img, resizedImg);
-            return new DetPreResultBatch(res, resizedImg, imgPath);
+            return new DetPreResultBatch(res, resizedImg, imagePath);
         }
 
 
@@ -146,16 +146,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
             if (resizeW <= 0 || resizeH <= 0)
                 throw new Exception("Image scaling failed: resizeW <= 0 or resizeH <= 0");
             // 4. 执行缩放并处理异常
-            try
-            {
-                // 调用OpenCV缩放）
-                Cv2.Resize(img, resized, new Size(resizeW, resizeH));
-            }
-            catch (Exception ex)
-            {
-                // 包装异常并保留原始异常（对应Python的raise ResizeImgError from exc）
-                throw new Exception("Image scaling failed", ex);
-            }
+            Cv2.Resize(img, resized, new Size(resizeW, resizeH));
 
         }
 
@@ -210,12 +201,12 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                     ratio = maxSideLen / w;
             }
 
-            int resizeH = (int)(h * ratio);
-            int resizeW = (int)(w * ratio);
+            int resizeH = (int)Math.Round((h * ratio), 0);
+            int resizeW = (int)Math.Round((w * ratio), 0);
 
             // 调整为32的倍数
-            resizeH = (int)(Math.Round(resizeH / 32.0, MidpointRounding.AwayFromZero) * 32);
-            resizeW = (int)(Math.Round(resizeW / 32.0, MidpointRounding.AwayFromZero) * 32);
+            resizeH = (int)Math.Round((Math.Round(resizeH / 32.0, MidpointRounding.AwayFromZero) * 32), 0);
+            resizeW = (int)Math.Round((Math.Round(resizeW / 32.0, MidpointRounding.AwayFromZero) * 32), 0);
 
             if (resizeH <= 0 || resizeW <= 0)
                 throw new Exception("The adjusted width or height is less than or equal to 0");
@@ -250,12 +241,12 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                     ratio = minSideLen / w;
             }
 
-            int resizeH = (int)(h * ratio);
-            int resizeW = (int)(w * ratio);
+            int resizeH = (int)Math.Round((h * ratio), 0);
+            int resizeW = (int)Math.Round((w * ratio), 0);
 
             // 调整为32的倍数
-            resizeH = (int)(Math.Round(resizeH / 32.0, MidpointRounding.AwayFromZero) * 32);
-            resizeW = (int)(Math.Round(resizeW / 32.0, MidpointRounding.AwayFromZero) * 32);
+            resizeH = (int)Math.Round((Math.Round(resizeH / 32.0, MidpointRounding.AwayFromZero) * 32), 0);
+            resizeW = (int)Math.Round((Math.Round(resizeW / 32.0, MidpointRounding.AwayFromZero) * 32), 0);
 
             if (resizeH <= 0 || resizeW <= 0)
                 throw new Exception("The adjusted width or height is less than or equal to 0");

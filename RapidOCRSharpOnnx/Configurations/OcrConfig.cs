@@ -34,7 +34,7 @@ namespace RapidOCRSharpOnnx.Configurations
 
         public RecognizerConfig RecognizerConfig { get; set; }
 
-        public OcrConfig(string detectorModelPath, string recognizerModelPath, LangRec langRec, OCRVersion ocrVersion, string classifierModelPath = null)
+        public OcrConfig(string detectorModelPath, string recognizerModelPath, LangRec langFont, OCRVersion ocrVersion, string classifierModelPath = null)
         {
             if (string.IsNullOrWhiteSpace(detectorModelPath))
             {
@@ -46,7 +46,7 @@ namespace RapidOCRSharpOnnx.Configurations
             }
 
             DetectorConfig = new DetectorConfig { ModelPath = detectorModelPath };
-            RecognizerConfig = new RecognizerConfig { ModelPath = recognizerModelPath, LangRec = langRec };
+            RecognizerConfig = new RecognizerConfig { ModelPath = recognizerModelPath, LangRec = langFont };
 
             if (!string.IsNullOrWhiteSpace(classifierModelPath) )
             {

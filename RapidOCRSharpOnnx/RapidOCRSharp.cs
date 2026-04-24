@@ -31,16 +31,28 @@ namespace RapidOCRSharpOnnx
 
         public OcrResult RecognizeText(string imagePath, string savePath = null)
         {
+            ValidationUtils.ValidateImage(imagePath);
             return _executePipeline.RecognizeText(imagePath, savePath);
+        }
+        public OcrResult RecognizeTextSeq(string imagePath, string savePath = null)
+        {
+            ValidationUtils.ValidateImage(imagePath);
+            return _executePipeline.RecognizeTextSeq(imagePath, savePath);
         }
         public OcrResult RecognizeText(Mat image, string savePath = null)
         {
             return _executePipeline.RecognizeText(image, savePath);
         }
-
-        public OcrBatchResult[] BatchAsync(List<string> imageList)
+        public OcrBatchResult[] BatchAsync(string dir, string saveDir = null)
         {
-            return _executePipeline.BatchAsync(imageList);
+            var list = ValidationUtils.ValidationImageBatch(dir, Configuration.BatchPoolSize);
+            return _executePipeline.BatchAsync(list, saveDir);
+        }
+        public OcrBatchResult[] BatchAsync(List<string> imageList, string saveDir = null)
+        {
+            var list = UtilsHelper.GetFilesFromListPaths(imageList);
+            ValidationUtils.ValidationImageListCount(list);
+            return _executePipeline.BatchAsync(imageList, saveDir);
         }
 
         //public async IAsyncEnumerable<OcrBatchResult> BatchForeachAsync(List<string> imageList)

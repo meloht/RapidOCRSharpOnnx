@@ -1,4 +1,5 @@
 ﻿using OpenCvSharp;
+using RapidOCRSharpOnnx.Inference.PPOCR_Rec.Models;
 using RapidOCRSharpOnnx.Models;
 using RapidOCRSharpOnnx.Utils;
 using System;
@@ -10,7 +11,9 @@ namespace RapidOCRSharpOnnx.Inference
 {
     public interface IOcrRecognizer : IDisposable
     {
-        ResultPerf<RecResult[]> TextRecognize(DisposableList<Mat> imgList);
+        ResultPerf<RecResult[]> TextRecognize(DisposableList<ImageIndex> imgList);
+
+        ResultPerf<RecResult[]> TextRecognizeSeq(DisposableList<ImageIndex> imgList);
 
         void BatchRecAsync(OcrBatchResult batchResult);
     }

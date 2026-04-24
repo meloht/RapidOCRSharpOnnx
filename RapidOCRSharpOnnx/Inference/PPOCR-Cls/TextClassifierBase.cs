@@ -4,6 +4,7 @@ using OpenCvSharp.Flann;
 using RapidOCRSharpOnnx.Configurations;
 using RapidOCRSharpOnnx.Inference.PPOCR_Cls.Models;
 using RapidOCRSharpOnnx.Inference.PPOCR_Det.Models;
+using RapidOCRSharpOnnx.Inference.PPOCR_Rec.Models;
 using RapidOCRSharpOnnx.Models;
 using RapidOCRSharpOnnx.Providers;
 using RapidOCRSharpOnnx.Utils;
@@ -35,19 +36,12 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
         }
 
 
-        public ResultPerf<ClsResult[]> TextClassify(DisposableList<Mat> imgList)
+        public ResultPerf<ClsResult[]> TextClassify(DisposableList<ImageIndex> imgList)
         {
             PerfModel perf = new PerfModel();
 
-            int[] indices = new int[imgList.Count];
             float[] widthList = new float[imgList.Count];
-            for (int i = 0; i < indices.Length; i++)
-            {
-                indices[i] = i;
-                widthList[i] = (float)imgList[i].Width / (float)imgList[i].Height;
-            }
 
-            Array.Sort(indices, (a, b) => widthList[a].CompareTo(widthList[b]));
             int imgCount = imgList.Count;
             ClsResult[] cls_res = new ClsResult[imgCount];
             for (int i = 0; i < imgCount; i++)
@@ -69,7 +63,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
                 idx = 0;
                 for (int j = i; j < endNo; j++)
                 {
-                    idx = _clsPreprocess.ResizeNormImg(imgList[indices[j]], idx, batchData);
+                    idx = _clsPreprocess.ResizeNormImg(imgList[j].Image, idx, batchData);
                 }
 
                 using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(batchData, new long[] { batchSize, img_c, img_h, img_w });
@@ -94,48 +88,74 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
             resultPerf.Perf = perf;
             return resultPerf;
         }
+        public ResultPerf<ClsResult[]> TextClassifySeq(DisposableList<ImageIndex> imgList)
+        {
+            PerfModel perf = new PerfModel();
+            ClsResult[] results = new ClsResult[imgList.Count];
+            int img_c = _clsImageShape[0];
+            int img_h = _clsImageShape[1];
+            int img_w = _clsImageShape[2];
+            foreach (var item in imgList)
+            {
+                _stopwatch.Restart();
+                float[] batchData = new float[1 * img_c * img_h * img_w];
+                _clsPreprocess.ResizeNormImg(item.Image, 0, batchData);
+
+                using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(batchData, new long[] { 1, img_c, img_h, img_w });
+
+                _stopwatch.Stop();
+                perf.Preprocess += _stopwatch.ElapsedMilliseconds;
+
+                using var output = InferenceRun(inputOrtValue, perf);
+                _stopwatch.Restart();
+                using var ortValue = output[0];
+                results[item.Index] = _clsPostprocess.ClsPostProcess(ortValue, item.Image);
+
+                _stopwatch.Stop();
+                perf.Postprocess += _stopwatch.ElapsedMilliseconds;
+            }
+
+            perf.SumTotal();
+            var resultPerf = new ResultPerf<ClsResult[]>();
+            resultPerf.Data = results;
+            resultPerf.Perf = perf;
+            return resultPerf;
+        }
+
 
 
         public void BatchClsAsync(OcrBatchResult batchResult, ChannelWriter<OcrBatchResult> recChannelWriter)
         {
-
+            int count = batchResult.DetResult.ImgCropList.Count;
+            batchResult.ClsResult = new ClsResult[count];
             Channel<ClsPreResultBatch> channelPre = Channel.CreateBounded<ClsPreResultBatch>(UtilsHelper.GetChannelOptions(_ocrConfig.BatchPoolSize));
-            var producer = Task.Run(() => _clsPreprocess.PreprocessBatchAsync(batchResult.DetResult.ImgCropList, _deviceType, batchResult, channelPre.Writer));
+            var producer = Task.Run(() => _clsPreprocess.PreprocessBatchAsync(batchResult.DetResult.ImgCropList, _deviceType, channelPre.Writer));
 
             var consumer = WriteRecAsync(batchResult, channelPre, recChannelWriter);
 
             Task.WaitAll(producer, consumer);
-            recChannelWriter.Complete();
-            Console.WriteLine($"{DateTime.Now} recChannelWriter.Complete()");
+
 
         }
         private async Task WriteRecAsync(OcrBatchResult batchResult, Channel<ClsPreResultBatch> channelPre, ChannelWriter<OcrBatchResult> recChannelWriter)
         {
-            int idx = 0;
-            int count = batchResult.DetResult.ImgCropList.Count;
             int img_c = _clsImageShape[0];
             int img_h = _clsImageShape[1];
             int img_w = _clsImageShape[2];
 
-            batchResult.ClsResult = new ClsResult[count];
-
             await foreach (ClsPreResultBatch item in channelPre.Reader.ReadAllAsync())
             {
                 using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(item.InputData, new long[] { 1, img_c, img_h, img_w });
-                Console.WriteLine($"{DateTime.Now} Cls batch {idx}");
+                Console.WriteLine($"{DateTime.Now} Cls batch {item.ImageIndex.Index}");
                 var output0 = InferenceRun(inputOrtValue, null);
                 //await BatchPostProcessAsync(output0, item.BatchResult, item.img, idx, recChannelWriter);
 
                 using var ortValue = output0[0];
-                item.BatchResult.ClsResult[idx] = _clsPostprocess.ClsPostProcess(ortValue, item.img);
-                Console.WriteLine($"{DateTime.Now} Cls batch Write {idx}");
-                await recChannelWriter.WriteAsync(item.BatchResult);
-
-                Interlocked.Increment(ref idx);
-
+                batchResult.ClsResult[item.ImageIndex.Index] = _clsPostprocess.ClsPostProcess(ortValue, item.ImageIndex.Image);
+                Console.WriteLine($"{DateTime.Now} Cls batch Write {item.ImageIndex.Index}");
             }
+            await recChannelWriter.WriteAsync(batchResult);
 
-          
         }
 
         private async Task BatchPostProcessAsync(IDisposableReadOnlyCollection<OrtValue> output, OcrBatchResult item, Mat img, int index, ChannelWriter<OcrBatchResult> writer)

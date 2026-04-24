@@ -1,5 +1,6 @@
 ﻿using OpenCvSharp;
 using RapidOCRSharpOnnx.Inference.PPOCR_Cls.Models;
+using RapidOCRSharpOnnx.Inference.PPOCR_Rec.Models;
 using RapidOCRSharpOnnx.Providers;
 using RapidOCRSharpOnnx.Utils;
 using System;
@@ -13,7 +14,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
     {
         int ResizeNormImg(Mat img, int idx, float[] inputData);
 
-        void PreprocessBatchAsync(DisposableList<Mat> ImgCropList, DeviceType deviceType, OcrBatchResult batchResult, ChannelWriter<ClsPreResultBatch> writer);
+        void PreprocessBatchAsync(DisposableList<ImageIndex> ImgCropList, DeviceType deviceType, ChannelWriter<ClsPreResultBatch> writer);
 
         int[] GetClsImageShape();
 

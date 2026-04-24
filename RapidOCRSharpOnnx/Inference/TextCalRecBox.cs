@@ -492,7 +492,7 @@ namespace RapidOCRSharpOnnx.Inference
             else if (oriBox.All(p => p.X == centerX))
             {
                 // 按Y升序排列
-                var sortedByY = oriBox.OrderBy(p => p.Y).ToList();
+                var sortedByY = oriBox.OrderBy(p => p.Y).ToArray();
                 p1 = sortedByY[0];
                 p2 = sortedByY[1];
                 p3 = sortedByY[2];
@@ -502,8 +502,8 @@ namespace RapidOCRSharpOnnx.Inference
             else if (hasXEqualCenter && oriBox.All(p => p.Y != centerY))
             {
                 // 按Y < 中心 / Y > 中心 分组
-                var p12 = oriBox.Where(p => p.Y < centerY).ToList();
-                var p34 = oriBox.Where(p => p.Y > centerY).ToList();
+                var p12 = oriBox.Where(p => p.Y < centerY).ToArray();
+                var p34 = oriBox.Where(p => p.Y > centerY).ToArray();
 
                 float p12MinX = p12.Min(p => p.X);
                 float p12MaxX = p12.Max(p => p.X);
@@ -519,8 +519,8 @@ namespace RapidOCRSharpOnnx.Inference
             else
             {
                 // 按X < 中心 / X > 中心 分组
-                var p14 = oriBox.Where(p => p.X < centerX).ToList();
-                var p23 = oriBox.Where(p => p.X > centerX).ToList();
+                var p14 = oriBox.Where(p => p.X < centerX).ToArray();
+                var p23 = oriBox.Where(p => p.X > centerX).ToArray();
 
                 float p14MinY = p14.Min(p => p.Y);
                 float p14MaxY = p14.Max(p => p.Y);

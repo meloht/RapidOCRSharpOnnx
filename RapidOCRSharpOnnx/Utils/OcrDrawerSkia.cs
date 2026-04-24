@@ -3,6 +3,7 @@ using RapidOCRSharpOnnx.Configurations;
 using RapidOCRSharpOnnx.Inference;
 using RapidOCRSharpOnnx.Inference.PPOCR_Det;
 using RapidOCRSharpOnnx.Inference.PPOCR_Det.Models;
+using RapidOCRSharpOnnx.Inference.PPOCR_Rec.Models;
 using RapidOCRSharpOnnx.Models;
 using SkiaSharp;
 using System;
@@ -34,39 +35,51 @@ namespace RapidOCRSharpOnnx.Utils
 
         public void DrawTextBlock(Mat image, string savePath, DetResult detResult, RecResult[] recResults)
         {
+            using var input = Convert(image);
+            DrawTextBlockSKBitmap(input, savePath, detResult, recResults);
+        }
+
+        public void DrawTextBlock(string imagePath, string savePath, DetResult detResult, RecResult[] recResults)
+        {
+            using var image = SKBitmap.Decode(imagePath);
+            DrawTextBlockSKBitmap(image, savePath, detResult, recResults);
+        }
+        private void DrawTextBlockSKBitmap(SKBitmap image, string savePath, DetResult detResult, RecResult[] recResults)
+        {
             MapBoxesToOriginal(detResult, image.Height, image.Width);
             var croppedImgList = MapImgToOriginal(detResult.ImgCropList, detResult.ResizeData.RatioH, detResult.ResizeData.RatioW);
             var resCorp = _textCalRecBox.CalRecBoxes(croppedImgList, recResults, detResult.DetItems);
 
-            using var input = Convert(image);
-
             SKBitmap result = null;
             if (resCorp == null || resCorp.Count == 0)
             {
-                result = DrawOcrBoxTxt(input, detResult.DetItems);
+                result = DrawOcrBoxTxt(image, detResult.DetItems);
             }
             else
             {
-                result = DrawOcrBoxTxt(input, resCorp);
+                result = DrawOcrBoxTxt(image, resCorp);
             }
             using var img = SKImage.FromBitmap(result);
             using var data = img.Encode(SKEncodedImageFormat.Jpeg, 100);
-
+            if (File.Exists(savePath))
+            {
+                File.Delete(savePath);
+            }
             File.WriteAllBytes(savePath, data.ToArray());
         }
-        private Mat[] MapImgToOriginal(DisposableList<Mat> imgs, float ratioH, float ratioW)
+        private Mat[] MapImgToOriginal(DisposableList<ImageIndex> imgs, float ratioH, float ratioW)
         {
             Mat[] results = new Mat[imgs.Count];
             for (int i = 0; i < imgs.Count; i++)
             {
-                Mat img = imgs[i];
+                Mat img = imgs[i].Image;
                 // 1. 获取当前图像的 高度、宽度
                 int imgH = img.Rows;    // 图像高度
                 int imgW = img.Cols;    // 图像宽度
 
                 // 2. 计算原始图像尺寸
-                int oriImgH = (int)Math.Round(imgH * ratioH);
-                int oriImgW = (int)Math.Round(imgW * ratioW);
+                int oriImgH = (int)Math.Round(imgH * ratioH, 0);
+                int oriImgW = (int)Math.Round(imgW * ratioW, 0);
 
                 // 3. 缩放回原始尺寸
                 Mat resizeImg = new Mat();
@@ -131,15 +144,15 @@ namespace RapidOCRSharpOnnx.Utils
                 {
                     Color = color,
                     Style = SKPaintStyle.Stroke,
-                    StrokeWidth = 2,
+                    StrokeWidth = 1.0f,
                     IsAntialias = true
                 })
                 {
                     var path = BuildPath(points);
                     canvasRight.DrawPath(path, paint);
                 }
-                float boxH = GetBoxHeight(box);
-                float boxW = GetBoxWidth(box);
+                float boxH = UtilsHelper.GetBoxHeight(box);
+                float boxW = UtilsHelper.GetBoxWidth(box);
 
                 bool vertical = boxH > 2 * boxW;
 
@@ -222,12 +235,6 @@ namespace RapidOCRSharpOnnx.Utils
             return path;
         }
 
-        private float Distance(Point2f p1, Point2f p2)
-        {
-            float dx = p1.X - p2.X;
-            float dy = p1.Y - p2.Y;
-            return (float)Math.Sqrt(dx * dx + dy * dy);
-        }
         private float GetBoxHeight(Point2f[] box)
         {
             float minY = box.Min(p => p.Y);

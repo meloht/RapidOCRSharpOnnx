@@ -1,5 +1,6 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using OpenCvSharp;
+using RapidOCRSharpOnnx.Inference.PPOCR_Rec.Models;
 using RapidOCRSharpOnnx.Models;
 using RapidOCRSharpOnnx.Utils;
 using System;
@@ -10,7 +11,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
 {
     public interface IClsPostprocess
     {
-        void ClsPostProcess(OrtValue ortValue, int currentIndex, DisposableList<Mat> imgList, ClsResult[] cls_res);
+        void ClsPostProcess(OrtValue ortValue, int currentIndex, DisposableList<ImageIndex> imgList, ClsResult[] cls_res);
         ClsResult ClsPostProcess(OrtValue ortValue, Mat img);
     }
 }

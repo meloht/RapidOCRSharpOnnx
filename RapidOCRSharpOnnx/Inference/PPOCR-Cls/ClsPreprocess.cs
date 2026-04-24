@@ -2,6 +2,7 @@
 using RapidOCRSharpOnnx.Configurations;
 using RapidOCRSharpOnnx.Inference.PPOCR_Cls.Models;
 using RapidOCRSharpOnnx.Inference.PPOCR_Det.Models;
+using RapidOCRSharpOnnx.Inference.PPOCR_Rec.Models;
 using RapidOCRSharpOnnx.Providers;
 using RapidOCRSharpOnnx.Utils;
 using System;
@@ -11,7 +12,7 @@ using System.Threading.Channels;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
 {
-    public class ClsPreprocess : PreprocessBatchCore<Mat, OcrBatchResult, ClsPreResultBatch>, IClsPreprocess
+    public class ClsPreprocess : PreprocessBatchCore<ImageIndex, ClsPreResultBatch>, IClsPreprocess
     {
         private static readonly int[] ClsImageShapev4 = [3, 48, 192];
         private static readonly int[] ClsImageShapev5 = [3, 80, 160];
@@ -81,18 +82,19 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
             return idx;
         }
 
-        public void PreprocessBatchAsync(DisposableList<Mat> ImgCropList, DeviceType deviceType, OcrBatchResult batchResult, ChannelWriter<ClsPreResultBatch> writer)
+        public void PreprocessBatchAsync(DisposableList<ImageIndex> imgCropList, DeviceType deviceType, ChannelWriter<ClsPreResultBatch> writer)
         {
-            PreprocessBatchBaseAsync(ImgCropList, deviceType, writer, batchResult, PreprocessChannel);
+            PreprocessBatchBaseAsync(imgCropList, deviceType, writer, PreprocessChannel);
         }
-        protected ClsPreResultBatch PreprocessChannel(Mat img, OcrBatchResult batchResult)
+        protected ClsPreResultBatch PreprocessChannel(ImageIndex batchImage)
         {
+            Mat img = batchImage.Image;
             int img_c = _clsImageShape[0];
             int img_h = _clsImageShape[1];
             int img_w = _clsImageShape[2];
             float[] inputData = new float[img_c * img_h * img_w];
             ResizeNormImg(img, 0, inputData);
-            return new ClsPreResultBatch(batchResult, inputData, img);
+            return new ClsPreResultBatch(inputData, batchImage);
         }
 
 

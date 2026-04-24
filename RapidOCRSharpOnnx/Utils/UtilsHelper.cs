@@ -83,6 +83,62 @@ namespace RapidOCRSharpOnnx.Utils
             return channelOptions;
         }
 
+        public static List<string> GetFilesFromDirectory(string path)
+        {
+            List<string> list = new List<string>();
+            GetFiles(list, path);
+            return list;
+
+        }
+
+        public static List<string> GetFilesFromListPaths(List<string> images)
+        {
+            List<string> list = new List<string>();
+            foreach (var item in images)
+            {
+                string ext = Path.GetExtension(item);
+                string fileExt = ext.ToLower();
+                if (IsImageByExtension(fileExt))
+                {
+                    list.Add(item);
+                }
+            }
+            return list;
+
+        }
+
+        public static void GetFiles(List<string> list, string path)
+        {
+            DirectoryInfo directory = new DirectoryInfo(path);
+            var files = directory.GetFiles();
+
+            foreach (var item in files)
+            {
+                string fileExt = item.Extension.ToLower();
+                if (IsImageByExtension(fileExt))
+                {
+                    list.Add(item.FullName);
+                }
+            }
+            var subDirectories = Directory.GetDirectories(path);
+
+            foreach (string subDir in subDirectories)
+            {
+                GetFiles(list, subDir);
+            }
+        }
+        public static bool IsImageByExtension(string ext)
+        {
+            return ext == ".jpg" || ext == ".jpeg" ||
+                   ext == ".png" || ext == ".bmp" ||
+                   ext == ".gif" || ext == ".tiff" ||
+                   ext == ".webp";
+        }
+
+        public static string[] GetImageExtensions()
+        {
+            return new string[] { ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff", ".webp" };
+        }
 
         public static SKBitmap MatToSKBitmapFast(Mat mat)
         {
@@ -108,12 +164,7 @@ namespace RapidOCRSharpOnnx.Utils
                 throw new NotSupportedException("Unsupported format");
             }
 
-            var bitmap = new SKBitmap(
-                converted.Width,
-                converted.Height,
-                SKColorType.Bgra8888,
-                SKAlphaType.Premul
-            );
+            var bitmap = new SKBitmap(converted.Width, converted.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
 
             unsafe
             {
@@ -129,7 +180,51 @@ namespace RapidOCRSharpOnnx.Utils
         }
 
 
+        /// <summary>
+        /// 计算文本框的高度（0号点与3号点的欧几里得距离）
+        /// </summary>
+        /// <param name="box">四边形坐标列表：[4个角点, x/y坐标]</param>
+        /// <returns>文本框高度</returns>
+        /// <exception cref="ArgumentException">坐标格式不合法时抛出异常</exception>
+        public static float GetBoxHeight(Point2f[] boxes)
+        {
+            // 健壮性校验：确保坐标格式正确
+            if (boxes == null || boxes.Length < 4)
+            {
+                throw new ArgumentException("文本框坐标格式无效，必须包含4个点，每个点2个坐标");
+            }
 
+            // 提取0号点和3号点的坐标
+            float x0 = boxes[0].X;
+            float y0 = boxes[0].Y;
+            float x3 = boxes[3].X;
+            float y3 = boxes[3].Y;
+
+            // 计算欧几里得距离：√[(x0-x3)² + (y0-y3)²]
+            float dx = x0 - x3;
+            float dy = y0 - y3;
+            return (float)Math.Sqrt(dx * dx + dy * dy);
+        }
+
+        public static float GetBoxWidth(Point2f[] boxes)
+        {
+            // 健壮性校验：确保坐标格式正确（和高度计算保持一致）
+            if (boxes == null || boxes.Length < 4)
+            {
+                throw new ArgumentException("文本框坐标格式无效，必须包含4个点，每个点2个坐标");
+            }
+
+            // 提取0号点（左上）和1号点（右上）的坐标
+            float x0 = boxes[0].X;
+            float y0 = boxes[0].Y;
+            float x1 = boxes[1].X;
+            float y1 = boxes[1].Y;
+
+            // 计算欧几里得距离：√[(x0-x1)² + (y0-y1)²]
+            float dx = x0 - x1;
+            float dy = y0 - y1;
+            return (float)Math.Sqrt(dx * dx + dy * dy);
+        }
 
 
     }

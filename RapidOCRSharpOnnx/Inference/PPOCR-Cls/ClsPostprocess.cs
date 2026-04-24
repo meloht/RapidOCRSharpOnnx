@@ -1,11 +1,13 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using OpenCvSharp;
 using RapidOCRSharpOnnx.Configurations;
+using RapidOCRSharpOnnx.Inference.PPOCR_Rec.Models;
 using RapidOCRSharpOnnx.Models;
 using RapidOCRSharpOnnx.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
 {
@@ -51,7 +53,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
             return new ClsResult(label, score);
         }
        
-        public void ClsPostProcess(OrtValue ortValue,int currentIndex, DisposableList<Mat> imgList, ClsResult[] cls_res)
+        public void ClsPostProcess(OrtValue ortValue,int currentIndex, DisposableList<ImageIndex> imgList, ClsResult[] cls_res)
         {
             var shapeInfo = ortValue.GetTensorTypeAndShape();
             int batchSize = (int)shapeInfo.Shape[0];
@@ -86,7 +88,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
                 cls_res[index].Score = score;
                 if (label == "180" && score > _classifierConfig.ClsThresh)
                 {
-                    Cv2.Rotate(imgList[index], imgList[index], RotateFlags.Rotate180);
+                    Cv2.Rotate(imgList[index].Image, imgList[index].Image, RotateFlags.Rotate180);
                 }
             }
 

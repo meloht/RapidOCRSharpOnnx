@@ -1,8 +1,10 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using OpenCvSharp;
 using RapidOCRSharpOnnx.Configurations;
+using RapidOCRSharpOnnx.Inference.PPOCR_Det;
 using RapidOCRSharpOnnx.Inference.PPOCR_Det.Models;
 using RapidOCRSharpOnnx.Inference.PPOCR_Rec.Models;
+using RapidOCRSharpOnnx.Models;
 using RapidOCRSharpOnnx.Providers;
 using RapidOCRSharpOnnx.Utils;
 using System;
@@ -11,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace RapidOCRSharpOnnx.Inference
 {
@@ -33,38 +36,73 @@ namespace RapidOCRSharpOnnx.Inference
             _ocrDrawerSkia = new OcrDrawerSkia(_ocrConfig);
         }
 
-        public  OcrBatchResult[] BatchAsync(List<string> imageList)
+        public OcrBatchResult[] BatchAsync(List<string> imageList, string saveDir = null)
         {
-            Channel<OcrBatchResult> channelRecPre = Channel.CreateBounded<OcrBatchResult>(UtilsHelper.GetChannelOptions(_ocrConfig.BatchPoolSize));
+
 
             OcrBatchResult[] batchResults = new OcrBatchResult[imageList.Count];
-            Channel<OcrBatchResult> channelDetNext = null;
-            if (_ocrClassifier != null)
+            for (int i = 0; i < imageList.Count; i++)
             {
-                channelDetNext = Channel.CreateBounded<OcrBatchResult>(UtilsHelper.GetChannelOptions(_ocrConfig.BatchPoolSize));
+                batchResults[i] = new OcrBatchResult();
+                batchResults[i].ImagePath = imageList[i];
             }
-            else
+            try
             {
-                channelDetNext = channelRecPre;
-            }
 
-            List<Task> tasks = new List<Task>();
-            var task = Task.Run(() => _ocrDetector.BatchDetectAsync(imageList, channelDetNext.Writer, batchResults));
-            tasks.Add(task);
-            if (_ocrClassifier != null)
+
+                Channel<OcrBatchResult> channelRecPre = Channel.CreateBounded<OcrBatchResult>(UtilsHelper.GetChannelOptions(_ocrConfig.BatchPoolSize));
+                Channel<OcrBatchResult> channelDetNext = null;
+                if (_ocrClassifier != null)
+                {
+                    channelDetNext = Channel.CreateBounded<OcrBatchResult>(UtilsHelper.GetChannelOptions(_ocrConfig.BatchPoolSize));
+                }
+                else
+                {
+                    channelDetNext = channelRecPre;
+                }
+
+                List<Task> tasks = new List<Task>();
+                var task = Task.Run(() => _ocrDetector.BatchDetectAsync(imageList, channelDetNext.Writer, batchResults));
+                tasks.Add(task);
+                if (_ocrClassifier != null)
+                {
+                    var consumerCls = BatchClsRead(channelDetNext, channelRecPre.Writer);
+                    consumerCls.ContinueWith(t =>
+                    {
+                        channelRecPre.Writer.Complete();
+                        Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff")} recChannelWriter.Complete()");
+                    });
+                    tasks.Add(consumerCls);
+                }
+
+                var consumerRec = BatchRecRead(channelRecPre);
+
+                tasks.Add(consumerRec);
+
+                Task.WaitAll(tasks.ToArray());
+
+                if (!string.IsNullOrEmpty(saveDir))
+                {
+                    if (!Directory.Exists(saveDir))
+                    {
+                        Directory.CreateDirectory(saveDir);
+                    }
+                    foreach (var item in batchResults)
+                    {
+                        string resPath = $"res_{Path.GetFileName(item.ImagePath)}";
+                        string savePath = Path.Combine(saveDir, resPath);
+
+                        _ocrDrawerSkia.DrawTextBlock(item.ImagePath, savePath, item.DetResult, item.RecResult);
+                    }
+                }
+            }
+            finally
             {
-                var consumerCls = BatchClsRead(channelDetNext, channelRecPre.Writer);
-
-                tasks.Add(consumerCls);
+                foreach (var item in batchResults)
+                {
+                    item.DetResult?.ImgCropList?.Dispose();
+                }
             }
-
-            var consumerRec = BatchRecRead(channelRecPre);
-
-            tasks.Add(consumerRec);
-
-            Task.WaitAll(tasks.ToArray());
-
-
             return batchResults;
         }
 
@@ -80,7 +118,7 @@ namespace RapidOCRSharpOnnx.Inference
         {
             await foreach (OcrBatchResult item in channel.Reader.ReadAllAsync())
             {
-                 _ocrClassifier.BatchClsAsync(item, recChannelWriter);
+                _ocrClassifier.BatchClsAsync(item, recChannelWriter);
             }
         }
 
@@ -130,7 +168,7 @@ namespace RapidOCRSharpOnnx.Inference
 
         public OcrResult RecognizeText(string imagePath, string savePath = null)
         {
-            ValidationUtils.ValidateImage(imagePath);
+
             using Mat image = Cv2.ImRead(imagePath);
             return RecognizeText(image, savePath);
         }
@@ -169,7 +207,42 @@ namespace RapidOCRSharpOnnx.Inference
 
             return result;
         }
+        public OcrResult RecognizeTextSeq(string imagePath, string savePath = null)
+        {
+            using Mat image = Cv2.ImRead(imagePath);
+            OcrResult result = new OcrResult();
+            var detResult = _ocrDetector.TextDetect(image);
+            result.DetResult = detResult;
+            if (detResult.Data.ImgCropList == null || detResult.Data.ImgCropList.Count == 0)
+            {
+                return result;
+            }
+            using (detResult.Data.ImgCropList)
+            {
 
+                if (_ocrClassifier != null)
+                {
+                    var ClsResult = _ocrClassifier.TextClassifySeq(detResult.Data.ImgCropList);
+                    result.ClsResult = ClsResult;
+                }
+
+                var recResults = _ocrRecognizer.TextRecognizeSeq(detResult.Data.ImgCropList);
+                result.RecResult = recResults;
+
+                for (int i = 0; i < detResult.Data.DetItems.Length; i++)
+                {
+                    detResult.Data.DetItems[i].Word = recResults.Data[i].Label;
+                }
+                result.TextBlocks = string.Join(" ", recResults.Data.Select(r => r.Label));
+
+                if (!string.IsNullOrEmpty(savePath))
+                {
+                    _ocrDrawerSkia.DrawTextBlock(image, savePath, detResult.Data, recResults.Data);
+                }
+            }
+
+            return result;
+        }
         public void Dispose()
         {
             _ocrDetector?.Dispose();

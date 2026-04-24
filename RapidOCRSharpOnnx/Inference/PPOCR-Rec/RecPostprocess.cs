@@ -30,23 +30,29 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
             RecResult[] results = new RecResult[batchSize];
             for (int i = 0; i < batchSize; i++)
             {
-                int[] token_indices = maxIndexAndValue.Indices[i];
-                bool[] selection = GetSelection(token_indices, ignored_tokens);
-
-                var confList = GetConfList(maxIndexAndValue.Values, i, selection);
-
-                string text = GetCharList(token_indices, selection, charList);
-                float avgConf = (float)Math.Round(confList.Average(), 5);
-
-                results[i] = new RecResult(text, avgConf);
-                results[i].LineTxtLen = token_indices.Length * wh_ratio_list[i] / max_wh_ratio;
-                results[i].ValidCols = GetValidCols(selection);
-                results[i].ConfList = confList;
+                results[i] = BuildRecResult(i, maxIndexAndValue, ignored_tokens, wh_ratio_list[i], max_wh_ratio, charList);
             }
             return results;
 
         }
 
+        private RecResult BuildRecResult(int i, ValueTuplePairArray maxIndexAndValue, int[] ignored_tokens, float wh_ratio, float max_wh_ratio, string[] charList)
+        {
+            int[] token_indices = maxIndexAndValue.Indices[i];
+            bool[] selection = GetSelection(token_indices, ignored_tokens);
+
+            var confList = GetConfList(maxIndexAndValue.Values, i, selection);
+
+            string text = GetCharList(token_indices, selection, charList);
+            float avgConf = (float)Math.Round(confList.Average(), 5);
+
+            RecResult result = new RecResult(text, avgConf);
+            result.LineTxtLen = token_indices.Length * wh_ratio / max_wh_ratio;
+            result.ValidCols = GetValidCols(selection);
+            result.ConfList = confList;
+
+            return result;
+        }
         public RecResult RecPostProcess(OrtValue ortValue, float wh_ratio, float max_wh_ratio, string[] charList)
         {
             var shapeInfo = ortValue.GetTensorTypeAndShape();
@@ -59,22 +65,12 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
             if (batchSize != 1)
                 throw new InvalidOperationException("Rec Data length mismatch.");
 
+            int batchIdx = 0;
             var maxIndexAndValue = GetMaxIndexAndValue(data, batchSize, tNum, numClasses);
             int[] ignored_tokens = getIgnoredTokens();
 
-  
-            int[] token_indices = maxIndexAndValue.Indices[0];
-            bool[] selection = GetSelection(token_indices, ignored_tokens);
-
-            var confList = GetConfList(maxIndexAndValue.Values, 0, selection);
-
-            string text = GetCharList(token_indices, selection, charList);
-            float avgConf = (float)Math.Round(confList.Average(), 5);
-
-            RecResult result = new RecResult(text, avgConf);
-            result.LineTxtLen = token_indices.Length * wh_ratio / max_wh_ratio;
-            result.ValidCols = GetValidCols(selection);
-            result.ConfList = confList;
+            RecResult result = BuildRecResult(batchIdx, maxIndexAndValue, ignored_tokens, wh_ratio, max_wh_ratio, charList);
+           
             return result;
 
         }
