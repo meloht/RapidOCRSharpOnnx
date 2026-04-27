@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
-using static System.Collections.Specialized.BitVector32;
+
 
 namespace RapidOCRSharpOnnx.Inference
 {
@@ -461,7 +461,7 @@ namespace RapidOCRSharpOnnx.Inference
         }
 
         /// <summary>
-        /// 矩形框四点顺序排列（完全复刻Python原函数逻辑）
+        /// 矩形框四点顺序排列
         /// </summary>
         /// <param name="oriBox">原始矩形框坐标 List[4个点][x,y]</param>
         /// <returns>排序后的标准矩形框坐标</returns>

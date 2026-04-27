@@ -90,7 +90,6 @@ namespace RapidOCRSharpOnnx.Inference
             int gOffset = baseOffset + hw;
             int bOffset = baseOffset + hw * 2;
 
-
             for (int y = 0; y < img_h; y++)
             {
                 byte* row = src + y * stride;
