@@ -118,7 +118,7 @@ namespace RapidOCRSharpOnnx.ConsoleApp
             Console.WriteLine($"BatchAsync Time: {sw.ElapsedMilliseconds} ms");
             foreach (var item in resPath)
             {
-                Console.WriteLine(item.TextBlocks);
+                Console.WriteLine(item.ToString());
                 Console.WriteLine("------------------------------------------------------------");
             }
 

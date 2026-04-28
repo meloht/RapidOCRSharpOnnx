@@ -17,7 +17,6 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Channels;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
 {
@@ -202,6 +201,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
 
             int count = batchResult.DetResult.ImgCropList.Count;
             batchResult.ClsResult = new ClsResult[count];
+            MarkBatchItemCompleted(batchResult);
             Channel<ClsPreResultBatch> channelPre = Channel.CreateBounded<ClsPreResultBatch>(UtilsHelper.GetChannelOptions(_ocrConfig.BatchPoolSize));
 
             var producer = Task.Run(() => _clsPreprocess.PreprocessBatchAsync(batchResult.DetResult.ImgCropList, _matPool, _deviceType, channelPre.Writer));

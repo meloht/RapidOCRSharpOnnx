@@ -76,6 +76,14 @@ namespace RapidOCRSharpOnnx.Inference
         }
 
 
+        protected void MarkBatchItemCompleted(OcrBatchResult batchResult)
+        {
+            if (batchResult.DetResult.ImgCropList.Count == 0)
+            {
+                batchResult.EndTimestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            }
+        }
+
         public void DisposeBase()
         {
             _session?.Dispose();

@@ -18,5 +18,16 @@ namespace RapidOCRSharpOnnx
         public ClsResult[] ClsResult { get; set; }
 
         public RecResult[] RecResult { get; set; }
+
+        /// <summary>
+        /// DateTimeOffset.UtcNow.ToUnixTimeMilliseconds
+        /// </summary>
+        public long StartTimestamp { get; set; }
+        public long EndTimestamp { get; set; }
+
+        public override string ToString()
+        {
+            return $"{TextBlocks}{System.Environment.NewLine}Time: {EndTimestamp-StartTimestamp}{System.Environment.NewLine}";
+        }
     }
 }
