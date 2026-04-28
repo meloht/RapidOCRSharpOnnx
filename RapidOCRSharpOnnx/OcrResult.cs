@@ -18,7 +18,7 @@ namespace RapidOCRSharpOnnx
 
         public override string ToString()
         {
-            return $"TextBlocks: {TextBlocks} {System.Environment.NewLine}{System.Environment.NewLine}DetPerf: {DetResult?.Perf}, ClsPerf: {ClsResult?.Perf}, RecPerf: {RecResult?.Perf}{System.Environment.NewLine}";
+            return $"TextBlocks: {TextBlocks}{System.Environment.NewLine}{System.Environment.NewLine}DetPerf: {DetResult?.Perf}{System.Environment.NewLine}ClsPerf: {ClsResult?.Perf}{System.Environment.NewLine}RecPerf: {RecResult?.Perf}{System.Environment.NewLine}";
         }
 
     }

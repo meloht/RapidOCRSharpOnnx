@@ -7,7 +7,6 @@ using RapidOCRSharpOnnx.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
 {
@@ -53,7 +52,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
             return new ClsResult(label, score);
         }
        
-        public void ClsPostProcess(OrtValue ortValue,int currentIndex, DisposableList<ImageIndex> imgList, ClsResult[] cls_res)
+        public void ClsPostProcess(OrtValue ortValue,int batchIndex, DisposableList<ImageIndex> imgList, ClsResult[] cls_res)
         {
             var shapeInfo = ortValue.GetTensorTypeAndShape();
             int batchSize = (int)shapeInfo.Shape[0];
@@ -83,7 +82,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
      
                 string label = _classifierConfig.LabelList[maxIdx];
                 float score = maxVal;
-                int index= currentIndex + i;
+                int index= batchIndex + i;
                 cls_res[index].Label = label;
                 cls_res[index].Score = score;
                 if (label == "180" && score > _classifierConfig.ClsThresh)

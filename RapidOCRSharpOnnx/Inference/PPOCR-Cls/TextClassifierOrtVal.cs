@@ -24,6 +24,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
         public void Dispose()
         {
             DisposeBase();
+            DisposeClsBase();
         }
 
         protected override IDisposableReadOnlyCollection<OrtValue> InferenceRun(OrtValue inputOrtValue, PerfModel perf)

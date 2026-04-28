@@ -58,7 +58,7 @@ namespace RapidOCRSharpOnnx.Inference
                     consumerCls.ContinueWith(t =>
                     {
                         channelRecPre.Writer.Complete();
-                        Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff")} recChannelWriter.Complete()");
+                        //Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff")} recChannelWriter.Complete()");
                     });
                     tasks.Add(consumerCls);
                 }
@@ -140,7 +140,7 @@ namespace RapidOCRSharpOnnx.Inference
                 _ = consumerCls.ContinueWith(t =>
                  {
                      channelRecPre.Writer.Complete();
-                     Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff")} recChannelWriter.Complete()");
+                     //Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff")} recChannelWriter.Complete()");
                  });
                 _ = Task.Run(() => consumerCls);
 

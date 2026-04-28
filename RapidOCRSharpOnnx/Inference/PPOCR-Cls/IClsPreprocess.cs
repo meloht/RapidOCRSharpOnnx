@@ -12,9 +12,11 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
 {
     public interface IClsPreprocess
     {
-        void ResizeNormImg(Mat img, int idx, float[] inputData);
+        void ResizeNormImg(Mat img, int idx, Mat resized, float[] inputData);
 
-        void PreprocessBatchAsync(DisposableList<ImageIndex> ImgCropList, DeviceType deviceType, ChannelWriter<ClsPreResultBatch> writer);
+        void ResizeNormImg(Mat img, Mat resized, FixedBuffer buffer);
+
+        void PreprocessBatchAsync(DisposableList<ImageIndex> ImgCropList, MatBufferPool matBuffer, DeviceType deviceType, ChannelWriter<ClsPreResultBatch> writer);
 
         int[] GetClsImageShape();
 

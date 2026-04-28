@@ -4,6 +4,7 @@ using RapidOCRSharpOnnx.Inference.PPOCR_Det.Models;
 using RapidOCRSharpOnnx.Providers;
 using RapidOCRSharpOnnx.Utils;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
@@ -13,7 +14,7 @@ using System.Threading.Channels;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 {
-    public class DetPreprocess : PreprocessBatchCore<ImagePathIndex, DetPreResultBatch>, IDetPreprocess
+    public class DetPreprocess : PreprocessBatchCore<ImagePathIndex, object, DetPreResultBatch>, IDetPreprocess
     {
         private OcrConfig _ocrConfig;
         private Scalar _paddingColor;
@@ -35,9 +36,9 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 
         public void PreprocessBatchAsync(List<ImagePathIndex> listImg, DeviceType deviceType, ChannelWriter<DetPreResultBatch> writer)
         {
-            PreprocessBatchBaseAsync(listImg, deviceType, writer, PreprocessChannel);
+            PreprocessBatchBaseAsync(listImg, deviceType, null, writer, PreprocessChannel);
         }
-        protected DetPreResultBatch PreprocessChannel(ImagePathIndex imagePath)
+        protected DetPreResultBatch PreprocessChannel(ImagePathIndex imagePath, object t2)
         {
             using Mat img = Cv2.ImRead(imagePath.ImagePath);
             Mat resizedImg = img.Clone();
@@ -70,7 +71,9 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 
             using Mat resizedImg = new Mat();
             Resize(image, resizedImg, limitSideLen);
-            float[] inputData = new float[resizedImg.Height * resizedImg.Width * 3];
+            //float[] inputData = new float[resizedImg.Height * resizedImg.Width * 3];
+            int len = resizedImg.Height * resizedImg.Width * 3;
+            float[] inputData = ArrayPool<float>.Shared.Rent(len);
             //NormalizeAndPermute(resizedImg, inputData);
 
             if (Avx2.IsSupported)
@@ -331,12 +334,12 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                     ratio = maxSideLen / w;
             }
 
-            int resizeH = (int)Math.Round((h * ratio), 0);
-            int resizeW = (int)Math.Round((w * ratio), 0);
+            int resizeH = (int)Math.Round((h * ratio), 0, MidpointRounding.AwayFromZero);
+            int resizeW = (int)Math.Round((w * ratio), 0, MidpointRounding.AwayFromZero);
 
             // 调整为32的倍数
-            resizeH = (int)Math.Round((Math.Round(resizeH / 32.0, MidpointRounding.AwayFromZero) * 32), 0);
-            resizeW = (int)Math.Round((Math.Round(resizeW / 32.0, MidpointRounding.AwayFromZero) * 32), 0);
+            resizeH = (int)Math.Round(resizeH / 32.0, 0, MidpointRounding.AwayFromZero) * 32;
+            resizeW = (int)Math.Round(resizeW / 32.0, 0, MidpointRounding.AwayFromZero) * 32;
 
             if (resizeH <= 0 || resizeW <= 0)
                 throw new Exception("The adjusted width or height is less than or equal to 0");
@@ -373,12 +376,12 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                     ratio = minSideLen / w;
             }
 
-            int resizeH = (int)Math.Round((h * ratio), 0);
-            int resizeW = (int)Math.Round((w * ratio), 0);
+            int resizeH = (int)Math.Round((h * ratio), 0, MidpointRounding.AwayFromZero);
+            int resizeW = (int)Math.Round((w * ratio), 0, MidpointRounding.AwayFromZero);
 
             // 调整为32的倍数
-            resizeH = (int)Math.Round((Math.Round(resizeH / 32.0, MidpointRounding.AwayFromZero) * 32), 0);
-            resizeW = (int)Math.Round((Math.Round(resizeW / 32.0, MidpointRounding.AwayFromZero) * 32), 0);
+            resizeH = (int)Math.Round(resizeH / 32.0, 0, MidpointRounding.AwayFromZero) * 32;
+            resizeW = (int)Math.Round(resizeW / 32.0, 0, MidpointRounding.AwayFromZero) * 32;
 
             if (resizeH <= 0 || resizeW <= 0)
                 throw new Exception("The adjusted width or height is less than or equal to 0");
@@ -457,7 +460,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                 BorderTypes.Constant,
                 _paddingColor // 黑色填充，根据图像通道数自动适应
             );
-   
+
         }
 
     }

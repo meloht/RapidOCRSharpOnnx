@@ -6,19 +6,22 @@ using RapidOCRSharpOnnx.Inference.PPOCR_Rec.Models;
 using RapidOCRSharpOnnx.Providers;
 using RapidOCRSharpOnnx.Utils;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Channels;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
 {
-    public class ClsPreprocess : PreprocessBatchCore<ImageIndex, ClsPreResultBatch>, IClsPreprocess
+    public class ClsPreprocess : PreprocessBatchCore<ImageIndex, MatBufferPool, ClsPreResultBatch>, IClsPreprocess
     {
         private static readonly int[] ClsImageShapev4 = [3, 48, 192];
         private static readonly int[] ClsImageShapev5 = [3, 80, 160];
 
         private OcrConfig _ocrConfig;
         protected readonly int[] _clsImageShape;
+
         public ClsPreprocess(OcrConfig ocrConfig)
         {
             _ocrConfig = ocrConfig;
@@ -37,9 +40,25 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
             return _clsImageShape;
         }
 
-        public void ResizeNormImg(Mat img, int idx, float[] inputData)
+        public void ResizeNormImg(Mat img, int idx, Mat resized, float[] inputData)
         {
-            // 获取原图尺寸和通道数
+            int img_c = _clsImageShape[0];
+            int img_h = _clsImageShape[1];
+            int img_w = _clsImageShape[2];
+
+            int resized_w = GetResizedW(img);
+            // 缩放图像到 (resized_w, img_h)
+            Cv2.Resize(img, resized, new OpenCvSharp.Size(resized_w, img_h), interpolation: InterpolationFlags.Linear);
+            unsafe
+            {
+                fixed (float* dst = inputData)
+                {
+                    ConvertToNormImg(resized_w, idx, img_c, img_h, img_w, resized, dst);
+                }
+            }
+        }
+        private int GetResizedW(Mat img)
+        {
             int h = img.Height;
             int w = img.Width;
             int channels = img.Channels();
@@ -55,29 +74,39 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
             double estimatedWidth = Math.Ceiling(img_h * ratio);
 
             int resized_w = estimatedWidth > img_w ? img_w : (int)estimatedWidth;
-
-            // 缩放图像到 (resized_w, img_h)
-            using Mat resized = new Mat();
-            Cv2.Resize(img, resized, new OpenCvSharp.Size(resized_w, img_h), interpolation: InterpolationFlags.Linear);
-            ConvertToNormImg(resized_w, idx, img_c, img_h, img_w, resized, inputData);
-
+            return resized_w;
         }
 
-
-
-        public void PreprocessBatchAsync(DisposableList<ImageIndex> imgCropList, DeviceType deviceType, ChannelWriter<ClsPreResultBatch> writer)
+        public void ResizeNormImg(Mat img, Mat resized, FixedBuffer buffer)
         {
-            PreprocessBatchBaseAsync(imgCropList, deviceType, writer, PreprocessChannel);
-        }
-        protected ClsPreResultBatch PreprocessChannel(ImageIndex batchImage)
-        {
-            Mat img = batchImage.Image;
             int img_c = _clsImageShape[0];
             int img_h = _clsImageShape[1];
             int img_w = _clsImageShape[2];
-            float[] inputData = new float[img_c * img_h * img_w];
-            ResizeNormImg(img, 0, inputData);
-            return new ClsPreResultBatch(inputData, batchImage);
+
+            int resized_w = GetResizedW(img);
+
+            // 缩放图像到 (resized_w, img_h)
+            Cv2.Resize(img, resized, new OpenCvSharp.Size(resized_w, img_h), interpolation: InterpolationFlags.Linear);
+
+            unsafe
+            {
+                ConvertToNormImg(resized_w, 0, img_c, img_h, img_w, resized, buffer.Pointer);
+            }
+
+
+        }
+
+        public void PreprocessBatchAsync(DisposableList<ImageIndex> imgCropList, MatBufferPool matBuffer, DeviceType deviceType, ChannelWriter<ClsPreResultBatch> writer)
+        {
+            PreprocessBatchBaseAsync(imgCropList, deviceType, matBuffer, writer, PreprocessChannel);
+        }
+        protected ClsPreResultBatch PreprocessChannel(ImageIndex batchImage, MatBufferPool matBuffer)
+        {
+            Mat img = batchImage.Image;
+            var data= matBuffer.Rent();
+
+            ResizeNormImg(img, data.ResizedImg, data.FixedBuffer);
+            return new ClsPreResultBatch(data, batchImage);
         }
 
 

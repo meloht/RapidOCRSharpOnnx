@@ -13,11 +13,16 @@ namespace RapidOCRSharpOnnx.ConsoleApp
         static void Main(string[] args)
         {
             var buildNumber = Environment.OSVersion.Version.Build;
-            //TestBatch();
+            TestBatch();
             //_=TestBatchForeachAsync();
             // TestListSeq();
             // TestListSeq2();
-            TestImage();
+            //TestImage();
+
+            //Parallel.For(0, 100, i =>
+            //{
+            //    Console.WriteLine($"Index: {i}, Thread: {Thread.CurrentThread.ManagedThreadId}");
+            //});
             Console.WriteLine("123");
             Console.ReadKey();
            
@@ -25,17 +30,17 @@ namespace RapidOCRSharpOnnx.ConsoleApp
 
         private static void TestImage()
         {
-            //string imgPath = @"E:\Hp\ai-image\ADFtools\headerText.png";
-            string imgPath = @"D:\code\model\OCRTestImages\headerText.png";
+            string imgPath = @"E:\Hp\ai-image\ADFtools\headerText.png";
+            //string imgPath = @"D:\code\model\OCRTestImages\text_vertical_words.png";
             //string detectPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-OCRv4_det_mobile.onnx";
             //string recogPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-OCRv4_rec_mobile.onnx";
             //string clsPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_ppocr_mobile_v2.0_cls_mobile.onnx";
 
             string detectPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-OCRv5_det_mobile.onnx";
-            string recogPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\en_PP-OCRv5_rec_mobile.onnx";
+            string recogPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-OCRv5_rec_mobile.onnx";
             string clsPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-LCNet_x0_25_textline_ori_cls_mobile.onnx";
 
-            using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderDirectML(new OcrConfig(detectPath, recogPath, LangRec.EN, OCRVersion.PPOCRV5, clsPath), _deviceId));
+            using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderDirectML(new OcrConfig(detectPath, recogPath, LangRec.CH, OCRVersion.PPOCRV5, clsPath), _deviceId));
 
             string resPath = $"res_{Path.GetFileName(imgPath)}";
             var result = ocr.RecognizeText(imgPath, resPath);
@@ -47,8 +52,8 @@ namespace RapidOCRSharpOnnx.ConsoleApp
             string detectPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-OCRv5_det_mobile.onnx";
             string recogPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-OCRv5_rec_mobile.onnx";
             string clsPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-LCNet_x0_25_textline_ori_cls_mobile.onnx";
-            //string saveDir = @"D:\code\model\OCRTestImagesResults";
-            string saveDir = null;
+           // string saveDir = @"D:\code\model\OCRTestImagesResults";
+           // string saveDir = null;
             using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderDirectML(new OcrConfig(detectPath, recogPath, LangRec.CH, OCRVersion.PPOCRV5, clsPath), _deviceId));
             var list = Directory.GetFiles(@"D:\code\model\OCRTestImages");
             Stopwatch sw = new Stopwatch();
@@ -98,8 +103,8 @@ namespace RapidOCRSharpOnnx.ConsoleApp
             //string detectPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-OCRv4_det_mobile.onnx";
             //string recogPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-OCRv4_rec_mobile.onnx";
             //string clsPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_ppocr_mobile_v2.0_cls_mobile.onnx";
-            //string saveDir = @"D:\code\model\OCRTestImagesResults";
-            string saveDir = null;
+            string saveDir = @"D:\code\model\OCRTestImagesResults";
+            //string saveDir = null;
             string detectPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-OCRv5_det_mobile.onnx";
             string recogPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-OCRv5_rec_mobile.onnx";
             string clsPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-LCNet_x0_25_textline_ori_cls_mobile.onnx";
@@ -113,7 +118,8 @@ namespace RapidOCRSharpOnnx.ConsoleApp
             Console.WriteLine($"BatchAsync Time: {sw.ElapsedMilliseconds} ms");
             foreach (var item in resPath)
             {
-                Console.WriteLine(item.TextBlocks);
+                Console.WriteLine(item.ToString());
+                Console.WriteLine("------------------------------------------------------------");
             }
 
             Console.WriteLine("end");
