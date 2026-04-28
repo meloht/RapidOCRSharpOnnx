@@ -192,7 +192,15 @@ namespace RapidOCRSharpOnnx.Utils
                 : Math.Max(boxH * 0.8f, 10);
 
             SKFont font = new(_typeface, fontSize);
-            font.Size = FitTextSizeBinary(font, boxH);
+            if (vertical)
+            {
+                font.Size = FitTextSizeBinary(font, boxW);
+            }
+            else
+            {
+                font.Size = FitTextSizeBinary(font, boxH);
+            }
+            
             return font;
         }
 

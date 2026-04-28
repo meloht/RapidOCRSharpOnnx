@@ -334,8 +334,8 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                     ratio = maxSideLen / w;
             }
 
-            int resizeH = (int)Math.Round((h * ratio), 0);
-            int resizeW = (int)Math.Round((w * ratio), 0);
+            int resizeH = (int)Math.Round((h * ratio), 0, MidpointRounding.AwayFromZero);
+            int resizeW = (int)Math.Round((w * ratio), 0, MidpointRounding.AwayFromZero);
 
             // 调整为32的倍数
             resizeH = (int)Math.Round(resizeH / 32.0, 0, MidpointRounding.AwayFromZero) * 32;
@@ -376,8 +376,8 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                     ratio = minSideLen / w;
             }
 
-            int resizeH = (int)Math.Round((h * ratio), 0);
-            int resizeW = (int)Math.Round((w * ratio), 0);
+            int resizeH = (int)Math.Round((h * ratio), 0, MidpointRounding.AwayFromZero);
+            int resizeW = (int)Math.Round((w * ratio), 0, MidpointRounding.AwayFromZero);
 
             // 调整为32的倍数
             resizeH = (int)Math.Round(resizeH / 32.0, 0, MidpointRounding.AwayFromZero) * 32;
