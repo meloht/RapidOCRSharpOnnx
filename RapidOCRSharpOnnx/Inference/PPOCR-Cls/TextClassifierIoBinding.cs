@@ -21,6 +21,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
         public void Dispose()
         {
             DisposeBase();
+            DisposeClsBase();
             _binding.Dispose();
         }
 

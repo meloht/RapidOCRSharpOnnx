@@ -1,5 +1,6 @@
 ﻿using OpenCvSharp;
 using RapidOCRSharpOnnx.Providers;
+using RapidOCRSharpOnnx.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -10,9 +11,9 @@ using System.Threading.Tasks;
 
 namespace RapidOCRSharpOnnx.Inference
 {
-    public class PreprocessBatchCore<T, TResult>
+    public class PreprocessBatchCore<T, T2, TResult>
     {
-        protected void PreprocessBatchBaseAsync(IList<T> listImg, DeviceType deviceType, ChannelWriter<TResult> writer, Func<T, TResult> preprocess)
+        protected void PreprocessBatchBaseAsync(IList<T> listImg, DeviceType deviceType, T2 t2, ChannelWriter<TResult> writer, Func<T, T2, TResult> preprocess)
         {
             if (listImg == null || listImg.Count == 0)
             {
@@ -25,20 +26,20 @@ namespace RapidOCRSharpOnnx.Inference
             int idx = 0;
             foreach (T[] subList in arr)
             {
-                tasks[idx++] = RunPreprocessSplitAsync(subList, writer, preprocess);
+                tasks[idx++] = RunPreprocessSplitAsync(subList, writer, t2, preprocess);
             }
 
             Task.WaitAll(tasks);
 
             writer.Complete();
         }
-        private Task RunPreprocessSplitAsync(IList<T> list, ChannelWriter<TResult> writer, Func<T, TResult> preprocess)
+        private Task RunPreprocessSplitAsync(IList<T> list, ChannelWriter<TResult> writer, T2 t2, Func<T, T2, TResult> preprocess)
         {
             return Task.Run(async () =>
             {
                 foreach (T item in list)
                 {
-                    TResult res = preprocess(item);
+                    TResult res = preprocess(item, t2);
                     await writer.WriteAsync(res);
                 }
 
@@ -88,7 +89,7 @@ namespace RapidOCRSharpOnnx.Inference
             return size;
         }
 
-        protected unsafe void ConvertToNormImg(int resized_w, int index, int img_c, int img_h, int img_w, Mat resized, float[] inputData)
+        protected unsafe void ConvertToNormImg(int resized_w, int index, int img_c, int img_h, int img_w, Mat resized, float* inputData)
         {
             byte* src = (byte*)resized.DataPointer;
             int stride = (int)resized.Step();
@@ -128,7 +129,6 @@ namespace RapidOCRSharpOnnx.Inference
                     inputData[bOffset + idx] = 0f;
                 }
             }
-
         }
     }
 }

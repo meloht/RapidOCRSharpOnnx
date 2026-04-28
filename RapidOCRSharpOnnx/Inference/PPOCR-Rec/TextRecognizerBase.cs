@@ -66,6 +66,8 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
             int img_h = _ocrConfig.RecognizerConfig.RecImgShape[1];
             int img_w = _ocrConfig.RecognizerConfig.RecImgShape[2];
 
+            long[] inputShape = [1, img_c, img_h, img_w];
+
             for (int batchIndex = 0, imgIdx = 0; batchIndex < imgCount; batchIndex += _ocrConfig.RecognizerConfig.RecBatchNum)
             {
                 _stopwatch.Restart();
@@ -100,7 +102,9 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
                         _recPreprocess.ResizeNormImg(imgList[j].Image, j - idx, batchData, img_width, img_max_width);
                     });
 
-                    using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(batchData, new long[] { batchSize, img_c, img_h, img_width });
+                    inputShape[0] = batchSize;
+                    inputShape[3] = img_width;
+                    using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(batchData, inputShape);
 
                     _stopwatch.Stop();
                     perf.Preprocess += _stopwatch.ElapsedMilliseconds;
@@ -133,7 +137,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
                         perf.Postprocess += _stopwatch.ElapsedMilliseconds;
                     }
                 }
-               
+
             }
             perf.SumTotal();
             var resultPerf = new ResultPerf<RecResult[]>();
@@ -149,14 +153,15 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
             int img_c = _ocrConfig.RecognizerConfig.RecImgShape[0];
             int img_h = _ocrConfig.RecognizerConfig.RecImgShape[1];
             int img_w = _ocrConfig.RecognizerConfig.RecImgShape[2];
-
+            long[] inputShape = [1, img_c, img_h, img_w];
             foreach (ImageIndex imgIdx in imgList)
             {
                 _stopwatch.Restart();
 
                 var pre = _recPreprocess.PreprocessSeq(imgIdx);
 
-                using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(pre.InputData, new long[] { 1, img_c, img_h, pre.ImgWidth });
+                inputShape[3] = pre.ImgWidth;
+                using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(pre.InputData, inputShape);
 
                 _stopwatch.Stop();
                 perf.Preprocess += _stopwatch.ElapsedMilliseconds;
@@ -167,7 +172,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
                 {
                     ArrayPool<float>.Shared.Return(pre.InputData, true);
                 }
-              
+
                 using var ortValue = outData[0];
                 rec_res[imgIdx.Index] = _recPostprocess.RecPostProcess(ortValue, pre.WhRatio, pre.MaxWhRatio, _charList);
                 _stopwatch.Stop();
@@ -205,7 +210,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
         {
             int img_c = _ocrConfig.RecognizerConfig.RecImgShape[0];
             int img_h = _ocrConfig.RecognizerConfig.RecImgShape[1];
-           
+
             Task[] producer = new Task[batchResult.RecResult.Length];
             int idx = 0;
             await foreach (RecPreResultBatch item in channelPre.Reader.ReadAllAsync())
@@ -215,7 +220,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
                 var output0 = InferenceRun(inputOrtValue, null);
 
                 producer[idx] = BatchPostProcessAsync(output0, batchResult, item);
-            
+
                 Interlocked.Increment(ref idx);
             }
             await Task.WhenAll(producer);
