@@ -168,18 +168,22 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
             int img_c = _clsImageShape[0];
             int img_h = _clsImageShape[1];
             int img_w = _clsImageShape[2];
-            ConcurrentBag<Task> tasks = new ConcurrentBag<Task>();
+            int count = batchResult.DetResult.ImgCropList.Count;
+            Task[] producer = new Task[count];
+            int idx = 0;
             await foreach (ClsPreResultBatch item in channelPre.Reader.ReadAllAsync())
             {
                 using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(item.InputData, new long[] { 1, img_c, img_h, img_w });
                 Console.WriteLine($"{DateTime.Now} Cls batch {item.ImageIndex.Index}");
                 var output0 = InferenceRun(inputOrtValue, null);
 
-                var task = BatchPostProcessAsync(output0, batchResult, item);
-                tasks.Add(task);
+                producer[idx] = BatchPostProcessAsync(output0, batchResult, item);
+                Interlocked.Increment(ref idx);
+
+
 
             }
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(producer);
             await recChannelWriter.WriteAsync(batchResult);
 
         }

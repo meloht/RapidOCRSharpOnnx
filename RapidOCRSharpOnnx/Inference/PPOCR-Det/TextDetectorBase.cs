@@ -100,19 +100,20 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
         }
         private async Task WriteNextAsync(Channel<DetPreResultBatch> channelDet, OcrBatchResult[] batchResults, ChannelWriter<OcrBatchResult> nextChannelWriter)
         {
-            ConcurrentBag<Task> tasks = new ConcurrentBag<Task>();
-
+           
+            Task[] producer = new Task[batchResults.Length];
+            int idx = 0;
             await foreach (DetPreResultBatch item in channelDet.Reader.ReadAllAsync())
             {
                 using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(item.PreResult.Data, item.PreResult.Dimensions);
                 Console.WriteLine($"Detect batch {item.ImagePathIndex.Index}");
                 var output0 = InferenceRun(inputOrtValue, null);
-               
-                var task = BatchPostProcessAsync(output0, item, batchResults[item.ImagePathIndex.Index], nextChannelWriter);
-                tasks.Add(task);
+
+                producer[idx] = BatchPostProcessAsync(output0, item, batchResults[item.ImagePathIndex.Index], nextChannelWriter);
+                Interlocked.Increment(ref idx);
             }
 
-            await Task.WhenAll(tasks).ContinueWith(t => nextChannelWriter.Complete());
+            await Task.WhenAll(producer).ContinueWith(t => nextChannelWriter.Complete());
         }
 
         private Task BatchPostProcessAsync(IDisposableReadOnlyCollection<OrtValue> output, DetPreResultBatch item, OcrBatchResult batchResult, ChannelWriter<OcrBatchResult> writer)
