@@ -6,6 +6,7 @@
   <Project Path="RapidOCRSharpOnnx.Console/RapidOCRSharpOnnx.ConsoleApp.csproj">
     <Platform Solution="*|x64" Project="x64" />
   </Project>
+  <Project Path="RapidOCRSharpOnnx.ConsoleGPU/RapidOCRSharpOnnx.ConsoleGPU.csproj" Id="105e285e-94c5-437f-80f8-29174e6e492e" />
   <Project Path="RapidOCRSharpOnnx.Test/RapidOCRSharpOnnx.Test.csproj">
     <Platform Solution="*|x64" Project="x64" />
   </Project>
