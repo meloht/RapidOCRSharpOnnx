@@ -222,15 +222,14 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
             await foreach (ClsPreResultBatchParallel item in channelPre.Reader.ReadAllAsync())
             {
                 long start = Stopwatch.GetTimestamp();
-                using (item.InputVal)
-                {
-                    var output0 = InferenceRun(item.InputVal);
-                    long end = Stopwatch.GetTimestamp();
-                    batchResult.ClsTimestamp = (long)((end - start) * 1000.0 / Stopwatch.Frequency);
 
-                    var task = BatchPostProcessAsync(output0, batchResult, item);
-                    producer.Add(task);
-                }
+                var output0 = InferenceRun(item.InputVal);
+                item.InputVal.Dispose();
+                long end = Stopwatch.GetTimestamp();
+                batchResult.ClsTimestamp = (long)((end - start) * 1000.0 / Stopwatch.Frequency);
+
+                var task = BatchPostProcessAsync(output0, batchResult, item);
+                producer.Add(task);
             }
             await Task.WhenAll(producer);
             await recChannelWriter.WriteAsync(batchResult);
