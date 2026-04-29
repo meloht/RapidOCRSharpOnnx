@@ -15,6 +15,8 @@ namespace RapidOCRSharpOnnx.Inference
 
         ResultPerf<ClsResult[]> TextClassifySeq(DisposableList<ImageIndex> imgList);
 
-        void BatchClsAsync(OcrBatchResult batchResult, ChannelWriter<OcrBatchResult> nextChannelWriter);
+        Task BatchParallelClsAsync(OcrBatchResult batchResult, ChannelWriter<OcrBatchResult> recChannelWriter);
+
+        Task BatchClsAsync(OcrBatchResult batchResult, ChannelWriter<OcrBatchResult> nextChannelWriter);
     }
 }

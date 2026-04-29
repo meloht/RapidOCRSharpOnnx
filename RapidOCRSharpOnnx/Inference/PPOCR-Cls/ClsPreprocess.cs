@@ -1,4 +1,6 @@
-﻿using OpenCvSharp;
+﻿using Microsoft.ML.OnnxRuntime;
+using OpenCvSharp;
+using OpenCvSharp.Flann;
 using RapidOCRSharpOnnx.Configurations;
 using RapidOCRSharpOnnx.Inference.PPOCR_Cls.Models;
 using RapidOCRSharpOnnx.Inference.PPOCR_Det.Models;
@@ -8,6 +10,7 @@ using RapidOCRSharpOnnx.Utils;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Text;
 using System.Threading.Channels;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -92,18 +95,55 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
             {
                 ConvertToNormImg(resized_w, 0, img_c, img_h, img_w, resized, buffer.Pointer);
             }
-
-
         }
 
-        public void PreprocessBatchAsync(DisposableList<ImageIndex> imgCropList, MatBufferPool matBuffer, DeviceType deviceType, ChannelWriter<ClsPreResultBatch> writer)
+        private OrtValue ResizeNormImgParallel(ImageIndex[] items, float[] batchData, long[] inputShape)
         {
-            PreprocessBatchBaseAsync(imgCropList, deviceType, matBuffer, writer, PreprocessChannel);
+            Parallel.For(0, items.Length, index =>
+            {
+                using Mat resized = new Mat();
+                ResizeNormImg(items[index].Image, index, resized, batchData);
+            });
+
+            return OrtValue.CreateTensorValueFromMemory(batchData, inputShape);
+        }
+
+        public void PreprocessBatchParallelAsync(DisposableList<ImageIndex> imgCropList, int inputShapeSize, ChannelWriter<ClsPreResultBatchParallel> writer)
+        {
+            var batchList = imgCropList.Chunk(_ocrConfig.ClassifierConfig.ClsBatchNum).ToArray();
+            int count = batchList.Length;
+            int[] dict = new int[count];
+            int batchIndex = 0;
+            for (int i = 0; i < count; i++)
+            {
+                dict[i] = batchIndex;
+                batchIndex += batchList[i].Length;
+            }
+            Parallel.For(0, count, index =>
+            {
+                var items = batchList[index];
+                int len = items.Length * inputShapeSize;
+                float[] batchData = ArrayPool<float>.Shared.Rent(len);
+                var ortVal = ResizeNormImgParallel(items, batchData, [items.LongLength, _clsImageShape[0], _clsImageShape[1], _clsImageShape[2]]);
+                ClsPreResultBatchParallel res = new ClsPreResultBatchParallel(batchData, ortVal, dict[index]);
+                writer.TryWrite(res);
+
+            });
+
+            writer.Complete();
+        }
+
+
+
+
+        public async Task PreprocessBatchAsync(DisposableList<ImageIndex> imgCropList, MatBufferPool matBuffer, DeviceType deviceType, ChannelWriter<ClsPreResultBatch> writer)
+        {
+            await PreprocessBatchBaseAsync(imgCropList, deviceType, matBuffer, writer, PreprocessChannel);
         }
         protected ClsPreResultBatch PreprocessChannel(ImageIndex batchImage, MatBufferPool matBuffer)
         {
             Mat img = batchImage.Image;
-            var data= matBuffer.Rent();
+            var data = matBuffer.Rent();
 
             ResizeNormImg(img, data.ResizedImg, data.FixedBuffer);
             return new ClsPreResultBatch(data, batchImage);

@@ -62,7 +62,12 @@ namespace RapidOCRSharpOnnx
                 yield return result;
             }
         }
-
+        public OcrBatchResult[] BatchParallelAsync(List<string> imageList, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
+        {
+            var list = UtilsHelper.GetFilesFromListPaths(imageList);
+            ValidationUtils.ValidationImageListCount(list);
+            return _executePipeline.BatchParallelAsync(imageList, saveDir, processCallback, receiveAction);
+        }
 
         public void Dispose()
         {

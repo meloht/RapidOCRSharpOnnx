@@ -11,6 +11,7 @@ using RapidOCRSharpOnnx.Providers;
 using RapidOCRSharpOnnx.Utils;
 using System;
 using System.Buffers;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -162,6 +163,11 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
             resultPerf.Perf = perf;
             return resultPerf;
         }
+
+
+
+
+
         public ResultPerf<ClsResult[]> TextClassifySeq(DisposableList<ImageIndex> imgList)
         {
             PerfModel perf = new PerfModel();
@@ -193,9 +199,58 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
             return resultPerf;
         }
 
+        public async Task BatchParallelClsAsync(OcrBatchResult batchResult, ChannelWriter<OcrBatchResult> recChannelWriter)
+        {
+            int count = batchResult.DetResult.ImgCropList.Count;
+            batchResult.ClsResult = new ClsResult[count];
+            for (int i = 0; i < count; i++)
+            {
+                batchResult.ClsResult[i] = new ClsResult("", 0.0f);
+            }
+            Channel<ClsPreResultBatchParallel> channelPre = Channel.CreateBounded<ClsPreResultBatchParallel>(UtilsHelper.GetChannelOptions(_ocrConfig.BatchPoolSize));
+            var producer = Task.Run(() => _clsPreprocess.PreprocessBatchParallelAsync(batchResult.DetResult.ImgCropList, _inputShapeSize, channelPre.Writer));
+            var consumer = WriteRecAsync(batchResult, channelPre, recChannelWriter);
+
+            await Task.WhenAll(producer, consumer);
+        }
+
+        private async Task WriteRecAsync(OcrBatchResult batchResult, Channel<ClsPreResultBatchParallel> channelPre, ChannelWriter<OcrBatchResult> recChannelWriter)
+        {
+            int count = batchResult.DetResult.ImgCropList.Count;
+
+            ConcurrentBag<Task> producer = new ConcurrentBag<Task>();
+            await foreach (ClsPreResultBatchParallel item in channelPre.Reader.ReadAllAsync())
+            {
+                long start = Stopwatch.GetTimestamp();
+                using (item.InputVal)
+                {
+                    var output0 = InferenceRun(item.InputVal);
+                    long end = Stopwatch.GetTimestamp();
+                    batchResult.ClsTimestamp = (long)((end - start) * 1000.0 / Stopwatch.Frequency);
+
+                    var task = BatchPostProcessAsync(output0, batchResult, item);
+                    producer.Add(task);
+                }
+            }
+            await Task.WhenAll(producer);
+            await recChannelWriter.WriteAsync(batchResult);
+        }
+
+        private Task BatchPostProcessAsync(IDisposableReadOnlyCollection<OrtValue> output, OcrBatchResult batchResult, ClsPreResultBatchParallel item)
+        {
+            return Task.Run(() =>
+            {
+                ArrayPool<float>.Shared.Return(item.InputData, true);
+                using (output)
+                {
+                    using var ortValue = output[0];
+                    _clsPostprocess.ClsPostProcess(ortValue, item.BatchIndex, batchResult.DetResult.ImgCropList, batchResult.ClsResult);
+                }
+            });
+        }
 
 
-        public void BatchClsAsync(OcrBatchResult batchResult, ChannelWriter<OcrBatchResult> recChannelWriter)
+        public async Task BatchClsAsync(OcrBatchResult batchResult, ChannelWriter<OcrBatchResult> recChannelWriter)
         {
             InitBufferPool(_ocrConfig.BatchPoolSize);
 
@@ -204,30 +259,30 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
 
             Channel<ClsPreResultBatch> channelPre = Channel.CreateBounded<ClsPreResultBatch>(UtilsHelper.GetChannelOptions(_ocrConfig.BatchPoolSize));
 
-            var producer = Task.Run(() => _clsPreprocess.PreprocessBatchAsync(batchResult.DetResult.ImgCropList, _matPool, _deviceType, channelPre.Writer));
+            var producer = Task.Run(async () => await _clsPreprocess.PreprocessBatchAsync(batchResult.DetResult.ImgCropList, _matPool, _deviceType, channelPre.Writer));
 
             var consumer = WriteRecAsync(batchResult, channelPre, recChannelWriter);
 
-            Task.WaitAll(producer, consumer);
+            await Task.WhenAll(producer, consumer);
 
 
         }
         private async Task WriteRecAsync(OcrBatchResult batchResult, Channel<ClsPreResultBatch> channelPre, ChannelWriter<OcrBatchResult> recChannelWriter)
         {
-
             int count = batchResult.DetResult.ImgCropList.Count;
-            Task[] producer = new Task[count];
-            int idx = 0;
+           
+            ConcurrentBag<Task> producer = new ConcurrentBag<Task>();
             await foreach (ClsPreResultBatch item in channelPre.Reader.ReadAllAsync())
             {
 
                 long start = Stopwatch.GetTimestamp();
-                var output0 = InferenceRun(item.InputData.InputOrtValue, null);
+                var output0 = InferenceRun(item.InputData.InputOrtValue);
                 long end = Stopwatch.GetTimestamp();
                 batchResult.ClsTimestamp = (long)((end - start) * 1000.0 / Stopwatch.Frequency);
                 _matPool.Return(item.InputData);
-                producer[idx] = BatchPostProcessAsync(output0, batchResult, item);
-                Interlocked.Increment(ref idx);
+                var task = BatchPostProcessAsync(output0, batchResult, item);
+                producer.Add(task);
+
             }
             await Task.WhenAll(producer);
             await recChannelWriter.WriteAsync(batchResult);
@@ -236,13 +291,12 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
 
         private Task BatchPostProcessAsync(IDisposableReadOnlyCollection<OrtValue> output, OcrBatchResult batchResult, ClsPreResultBatch item)
         {
-            return Task.Run(async () =>
+            return Task.Run(() =>
             {
                 using (output)
                 {
                     using var ortValue = output[0];
                     batchResult.ClsResult[item.ImageIndex.Index] = _clsPostprocess.ClsPostProcess(ortValue, item.ImageIndex.Image);
-                    // Console.WriteLine($"Cls batch Write {item.ImageIndex.Index}");
 
                 }
             });

@@ -13,7 +13,7 @@ namespace RapidOCRSharpOnnx.Inference
 {
     public class PreprocessBatchCore<T, T2, TResult>
     {
-        protected void PreprocessBatchBaseAsync(IList<T> listImg, DeviceType deviceType, T2 t2, ChannelWriter<TResult> writer, Func<T, T2, TResult> preprocess)
+        protected async Task PreprocessBatchBaseAsync(IList<T> listImg, DeviceType deviceType, T2 t2, ChannelWriter<TResult> writer, Func<T, T2, TResult> preprocess)
         {
             if (listImg == null || listImg.Count == 0)
             {
@@ -29,9 +29,7 @@ namespace RapidOCRSharpOnnx.Inference
                 tasks[idx++] = RunPreprocessSplitAsync(subList, writer, t2, preprocess);
             }
 
-            Task.WaitAll(tasks);
-
-            writer.Complete();
+            await Task.WhenAll(tasks).ContinueWith(t => writer.Complete());
         }
         private Task RunPreprocessSplitAsync(IList<T> list, ChannelWriter<TResult> writer, T2 t2, Func<T, T2, TResult> preprocess)
         {

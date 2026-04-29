@@ -13,7 +13,9 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
     {
         void ResizeNormImg(Mat img, int idx, float[] inputData, int img_width, int max_wh_ratio);
 
-        void PreprocessBatchAsync(DisposableList<ImageIndex> imgCropList, DeviceType deviceType, ChannelWriter<RecPreResultBatch> writer);
+        void PreprocessBatchParallelAsync(DisposableList<ImageIndex> imgCropList, ChannelWriter<RecPreResultBatchParallel> writer);
+
+        Task PreprocessBatchAsync(DisposableList<ImageIndex> imgCropList, DeviceType deviceType, ChannelWriter<RecPreResultBatch> writer);
 
         RecPreResultBatch PreprocessSeq(ImageIndex batchImage);
     }

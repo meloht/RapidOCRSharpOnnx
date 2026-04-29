@@ -12,6 +12,6 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
     {
         DetPreprocessData Preprocess(Mat image, Mat resizedImg);
 
-        void PreprocessBatchAsync(List<ImagePathIndex> listImg, DeviceType deviceType, ChannelWriter<DetPreResultBatch> writer);
+        Task PreprocessBatchAsync(List<ImagePathIndex> listImg, DeviceType deviceType, ChannelWriter<DetPreResultBatch> writer);
     }
 }

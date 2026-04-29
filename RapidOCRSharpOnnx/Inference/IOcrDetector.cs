@@ -12,6 +12,6 @@ namespace RapidOCRSharpOnnx.Inference
     {
         ResultPerf<DetResult> TextDetect(Mat image);
 
-        void BatchDetectAsync(List<string> listImg, ChannelWriter<OcrBatchResult> nextChannelWriter, OcrBatchResult[] batchResults);
+        Task BatchDetectAsync(List<string> listImg, ChannelWriter<OcrBatchResult> nextChannelWriter, OcrBatchResult[] batchResults);
     }
 }

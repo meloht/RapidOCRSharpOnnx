@@ -185,25 +185,79 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
             resultPerf.Perf = perf;
             return resultPerf;
         }
-        public void BatchRecAsync(OcrBatchResult batchResult)
+
+        public async Task BatchParallelRecAsync(OcrBatchResult batchResult)
+        {
+            int count = batchResult.DetResult.ImgCropList.Count;
+            batchResult.RecResult = new RecResult[count];
+            Channel<RecPreResultBatchParallel> channelPre = Channel.CreateBounded<RecPreResultBatchParallel>(UtilsHelper.GetChannelOptions(_ocrConfig.BatchPoolSize));
+            var producer = Task.Run(() => _recPreprocess.PreprocessBatchParallelAsync(batchResult.DetResult.ImgCropList, channelPre.Writer));
+            var consumer = WriteRecAsync(batchResult, channelPre);
+
+            await Task.WhenAll(producer, consumer).ContinueWith(t =>
+            {
+                for (int i = 0; i < batchResult.DetResult.DetItems.Length && i < batchResult.RecResult.Length; i++)
+                {
+                    batchResult.DetResult.DetItems[i].Word = batchResult.RecResult[i].Label;
+                }
+                batchResult.TextBlocks = string.Join(" ", batchResult.RecResult.Select(r => r.Label));
+            });
+        }
+        private async Task WriteRecAsync(OcrBatchResult batchResult, Channel<RecPreResultBatchParallel> channelPre)
+        {
+            int count = batchResult.DetResult.ImgCropList.Count;
+
+            ConcurrentBag<Task> producer = new ConcurrentBag<Task>();
+            await foreach (RecPreResultBatchParallel item in channelPre.Reader.ReadAllAsync())
+            {
+                long start = Stopwatch.GetTimestamp();
+                var output0 = InferenceRun(item.InputVal);
+                item.InputVal.Dispose();
+                long end = Stopwatch.GetTimestamp();
+                batchResult.RecTimestamp = (long)((end - start) * 1000.0 / Stopwatch.Frequency);
+
+                var task = BatchPostProcessAsync(output0, batchResult, item);
+                producer.Add(task);
+            }
+            await Task.WhenAll(producer);
+        }
+
+        private async Task BatchPostProcessAsync(IDisposableReadOnlyCollection<OrtValue> output, OcrBatchResult batchResult, RecPreResultBatchParallel item)
+        {
+            await Task.Run(() =>
+            {
+                ArrayPool<float>.Shared.Return(item.InputData, true);
+                using (output)
+                {
+                    using var ortValue = output[0];
+                    var res = _recPostprocess.RecPostProcess(ortValue, item.WhRatioList, item.MaxWhRatio, _charList);
+                    int imgIdx = item.BatchIndex;
+                    for (int j = 0; j < res.Length && imgIdx < batchResult.DetResult.ImgCropList.Count; j++, imgIdx++)
+                    {
+                        batchResult.RecResult[imgIdx] = res[j];
+                    }
+                }
+            });
+        }
+
+        public async Task BatchRecAsync(OcrBatchResult batchResult)
         {
             int count = batchResult.DetResult.ImgCropList.Count;
             batchResult.RecResult = new RecResult[count];
 
             Channel<RecPreResultBatch> channelPre = Channel.CreateBounded<RecPreResultBatch>(UtilsHelper.GetChannelOptions(_ocrConfig.BatchPoolSize));
-            var producer = Task.Run(() => _recPreprocess.PreprocessBatchAsync(batchResult.DetResult.ImgCropList, _deviceType, channelPre.Writer));
+            var producer = Task.Run(async () => await _recPreprocess.PreprocessBatchAsync(batchResult.DetResult.ImgCropList, _deviceType, channelPre.Writer));
 
             var consumer = ForeachReadAsync(channelPre, batchResult);
 
-            Task.WaitAll(producer, consumer);
-
-            for (int i = 0; i < batchResult.DetResult.DetItems.Length && i < batchResult.RecResult.Length; i++)
+            await Task.WhenAll(producer, consumer).ContinueWith(t =>
             {
-                batchResult.DetResult.DetItems[i].Word = batchResult.RecResult[i].Label;
-            }
-            batchResult.TextBlocks = string.Join(" ", batchResult.RecResult.Select(r => r.Label));
-
-
+                for (int i = 0; i < batchResult.DetResult.DetItems.Length && i < batchResult.RecResult.Length; i++)
+                {
+                    batchResult.DetResult.DetItems[i].Word = batchResult.RecResult[i].Label;
+                }
+                batchResult.TextBlocks = string.Join(" ", batchResult.RecResult.Select(r => r.Label));
+            });
         }
 
         private async Task ForeachReadAsync(Channel<RecPreResultBatch> channelPre, OcrBatchResult batchResult)
@@ -211,34 +265,32 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
             int img_c = _ocrConfig.RecognizerConfig.RecImgShape[0];
             int img_h = _ocrConfig.RecognizerConfig.RecImgShape[1];
 
-            Task[] producer = new Task[batchResult.RecResult.Length];
-            int idx = 0;
+            ConcurrentBag<Task> producer = new ConcurrentBag<Task>();
+
             await foreach (RecPreResultBatch item in channelPre.Reader.ReadAllAsync())
             {
                 using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(item.InputData, new long[] { 1, img_c, img_h, item.ImgWidth });
 
                 long start = Stopwatch.GetTimestamp();
-                var output0 = InferenceRun(inputOrtValue, null);
+                var output0 = InferenceRun(inputOrtValue);
                 long end = Stopwatch.GetTimestamp();
-                batchResult.RecTimestamp = (long)((end - start) * 1000.0 / Stopwatch.Frequency); 
-                producer[idx] = BatchPostProcessAsync(output0, batchResult, item);
+                batchResult.RecTimestamp = (long)((end - start) * 1000.0 / Stopwatch.Frequency);
 
-                Interlocked.Increment(ref idx);
+                var task = BatchPostProcessAsync(output0, batchResult, item);
+                producer.Add(task);
             }
             await Task.WhenAll(producer);
         }
 
         private Task BatchPostProcessAsync(IDisposableReadOnlyCollection<OrtValue> output, OcrBatchResult batchResult, RecPreResultBatch item)
         {
-            return Task.Run(async () =>
+            return Task.Run(() =>
             {
                 ArrayPool<float>.Shared.Return(item.InputData, true);
                 using (output)
                 {
                     using var ortValue = output[0];
                     batchResult.RecResult[item.Index] = _recPostprocess.RecPostProcess(ortValue, item.WhRatio, item.MaxWhRatio, _charList);
-
-                   // Console.WriteLine($"Rec RecPostProcess {item.Index}");
                 }
             });
 
