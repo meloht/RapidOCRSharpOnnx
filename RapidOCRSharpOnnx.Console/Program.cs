@@ -9,7 +9,7 @@ namespace RapidOCRSharpOnnx.ConsoleApp
 {
     internal class Program
     {
-        const int _deviceId = 1;
+        const int _deviceId = 0;
         static void Main(string[] args)
         {
             var buildNumber = Environment.OSVersion.Version.Build;
@@ -17,8 +17,8 @@ namespace RapidOCRSharpOnnx.ConsoleApp
             //TestBatch();
             //_=TestBatchForeachAsync();
             TestListSeq();
-            // TestListSeq2();
-            //TestImage();
+             //TestListSeq2();
+           // TestImage();
 
             //Parallel.For(0, 100, i =>
             //{
@@ -50,9 +50,9 @@ namespace RapidOCRSharpOnnx.ConsoleApp
 
         private static void TestListSeq()
         {
-            string detectPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-OCRv5_det_mobile.onnx";
-            string recogPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-OCRv5_rec_mobile.onnx";
-            string clsPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-LCNet_x0_25_textline_ori_cls_mobile.onnx";
+            string detectPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.Test\Models\ch_PP-OCRv5_det_mobile.onnx";
+            string recogPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.Test\Models\ch_PP-OCRv5_rec_mobile.onnx";
+            string clsPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.Test\Models\ch_PP-LCNet_x0_25_textline_ori_cls_mobile.onnx";
             string saveDir = @"D:\code\model\OCRTestImagesResults";
             // string saveDir = null;
             using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderDirectML(new OcrConfig(detectPath, recogPath, LangRec.CH, OCRVersion.PPOCRV5, clsPath), _deviceId));
