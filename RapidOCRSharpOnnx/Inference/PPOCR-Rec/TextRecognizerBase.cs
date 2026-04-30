@@ -214,7 +214,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
                 var output0 = InferenceRun(item.InputVal);
                 item.InputVal.Dispose();
                 long end = Stopwatch.GetTimestamp();
-                batchResult.RecTimestamp = (long)((end - start) * 1000.0 / Stopwatch.Frequency);
+                batchResult.RecElapsedTime = (long)((end - start) * 1000.0 / Stopwatch.Frequency);
 
                 var task = BatchPostProcessAsync(output0, batchResult, item);
                 producer.Add(task);
@@ -271,10 +271,11 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
             {
                 using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(item.InputData, new long[] { 1, img_c, img_h, item.ImgWidth });
 
-                long start = Stopwatch.GetTimestamp();
+                _stopwatch.Restart();
                 var output0 = InferenceRun(inputOrtValue);
-                long end = Stopwatch.GetTimestamp();
-                batchResult.RecTimestamp = (long)((end - start) * 1000.0 / Stopwatch.Frequency);
+                _stopwatch.Stop();
+
+                batchResult.RecElapsedTime = _stopwatch.ElapsedMilliseconds;
 
                 var task = BatchPostProcessAsync(output0, batchResult, item);
                 producer.Add(task);

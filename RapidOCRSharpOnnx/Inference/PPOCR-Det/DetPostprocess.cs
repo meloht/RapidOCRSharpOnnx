@@ -235,7 +235,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
         /// <summary>
         /// 多边形膨胀（Unclip）
         /// </summary>
-        private OpenCvSharp.Point[] UnclipBox(Point2f[] box)
+        private OpenCvSharp.Point2f[] UnclipBox(Point2f[] box)
         {
             // 1. 计算多边形的面积和周长
             double area = Cv2.ContourArea(box);
@@ -243,32 +243,25 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
             double distance = area * _detConfig.UnclipRatio / length; // 扩张距离（像素单位）
 
             // 2. 将 OpenCV 点转换为 Clipper 所需的 Path64（使用 long 类型）
-
-            Path64 path = new Path64();
+            PathD pathd = new PathD();
             foreach (var p in box)
             {
-                path.Add(new Point64((long)p.X, (long)p.Y));
+                pathd.Add(new PointD(p.X, p.Y));
             }
+            PathsD solution = Clipper.InflatePaths([pathd], distance, JoinType.Round, EndType.Polygon);
+            if (solution == null || solution.Count == 0)
+                return Array.Empty<Point2f>();
 
-            // 3. 创建 ClipperOffset 对象，设置偏移参数
-            ClipperOffset offset = new ClipperOffset();
-            // JoinType.Round 对应 pyclipper.JT_ROUND；EndType.Polygon 对应 ET_CLOSEDPOLYGON
-            offset.AddPath(path, JoinType.Round, EndType.Polygon);
-
-            // 4. 执行偏移（注意偏移距离也需要乘以 scale）
-            Paths64 solution = new Paths64();
-            offset.Execute(distance, solution);
+            PathD largest = solution.OrderByDescending(p => Math.Abs(Clipper.Area(p))).First();
 
             // 5. 处理结果：通常我们取第一个扩张后的多边形
             if (solution.Count == 0)
-                return new OpenCvSharp.Point[0]; // 没有结果时返回空数组
+                return new OpenCvSharp.Point2f[0]; // 没有结果时返回空数组
 
-            // 将结果中的点缩放回原始坐标并转换为 OpenCV Point
-            var expandedPath = solution[0]; // 根据需求，可能需要选择面积最大的轮廓或所有轮廓
-            OpenCvSharp.Point[] result = new Point[expandedPath.Count];
-            for (int i = 0; i < expandedPath.Count; i++)
+            OpenCvSharp.Point2f[] result = new Point2f[largest.Count];
+            for (int i = 0; i < largest.Count; i++)
             {
-                result[i] = new Point((int)expandedPath[i].X, (int)expandedPath[i].Y);
+                result[i] = new Point2f((float)largest[i].x, (float)largest[i].y);
             }
             return result;
         }
@@ -346,6 +339,32 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
             using Mat roiMat = new Mat(matPred, roi);
             Scalar meanValue = Cv2.Mean(roiMat, mask);
             return (float)meanValue.Val0;
+        }
+
+        /// <summary>
+        /// 获取最小外接矩形并排序点
+        /// </summary>
+        private (Point2f[], float) GetMiniBoxes(OpenCvSharp.Point2f[] contour)
+        {
+            // 最小外接矩形
+            RotatedRect rect = Cv2.MinAreaRect(contour);
+            Point2f[] points = Cv2.BoxPoints(rect);
+            Array.Sort(points, (a, b) => a.X.CompareTo(b.X));
+
+
+            // 排序点（保证顺时针）
+            var idx1 = points[1].Y > points[0].Y ? points[0] : points[1];
+            var idx4 = points[1].Y > points[0].Y ? points[1] : points[0];
+            var idx2 = points[3].Y > points[2].Y ? points[2] : points[3];
+            var idx3 = points[3].Y > points[2].Y ? points[3] : points[2];
+
+            points[0] = idx1;
+            points[1] = idx2;
+            points[2] = idx3;
+            points[3] = idx4;
+
+            return (points, Math.Min(rect.Size.Width, rect.Size.Height));
+
         }
 
         /// <summary>

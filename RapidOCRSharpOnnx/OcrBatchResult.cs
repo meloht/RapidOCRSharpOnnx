@@ -18,14 +18,22 @@ namespace RapidOCRSharpOnnx
         public ClsResult[] ClsResult { get; set; }
 
         public RecResult[] RecResult { get; set; }
-
-        public long DetTimestamp { get; set; }
-        public long ClsTimestamp { get; set; }
-        public long RecTimestamp { get; set; }
+        /// <summary>
+        /// millisecond
+        /// </summary>
+        public long DetElapsedTime { get; set; }
+        /// <summary>
+        /// millisecond
+        /// </summary>
+        public long ClsElapsedTime { get; set; }
+        /// <summary>
+        /// millisecond
+        /// </summary>
+        public long RecElapsedTime { get; set; }
 
         public override string ToString()
         {
-            return $"{TextBlocks}{System.Environment.NewLine}{System.Environment.NewLine}TotalTime: {DetTimestamp+ ClsTimestamp+ RecTimestamp}ms DetInfer:{DetTimestamp}ms ClsInfer:{ClsTimestamp}ms RecInfer:{RecTimestamp}ms{System.Environment.NewLine}";
+            return $"{TextBlocks}{System.Environment.NewLine}{System.Environment.NewLine}TotalTime: {DetElapsedTime + ClsElapsedTime + RecElapsedTime}ms DetInfer:{DetElapsedTime}ms ClsInfer:{ClsElapsedTime}ms RecInfer:{RecElapsedTime}ms{System.Environment.NewLine}";
         }
     }
 }

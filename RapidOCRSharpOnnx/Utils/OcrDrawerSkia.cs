@@ -194,13 +194,13 @@ namespace RapidOCRSharpOnnx.Utils
             SKFont font = new(_typeface, fontSize);
             if (vertical)
             {
-                font.Size = FitTextSizeBinary(font, boxW);
+                font.Size = FitTextSizeBinary(font, boxW * 0.8f);
             }
             else
             {
-                font.Size = FitTextSizeBinary(font, boxH);
+                font.Size = FitTextSizeBinary(font, boxH * 0.9f);
             }
-            
+
             return font;
         }
 
@@ -218,12 +218,14 @@ namespace RapidOCRSharpOnnx.Utils
 
             if (vertical)
             {
-                float curY = y;
+                float fontHeight = font.Metrics.Descent - font.Metrics.Ascent;
+                float curY = box[0].Y + fontHeight;
+                x = box[0].X;
                 foreach (char c in txt)
                 {
                     string s = c.ToString();
                     canvas.DrawText(s, x + 3, curY, font, paint);
-                    curY += GetTextBounds(font, c.ToString()).Height;
+                    curY += fontHeight;
                 }
             }
             else

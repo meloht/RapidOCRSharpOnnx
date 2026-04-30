@@ -226,7 +226,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
                 var output0 = InferenceRun(item.InputVal);
                 item.InputVal.Dispose();
                 long end = Stopwatch.GetTimestamp();
-                batchResult.ClsTimestamp = (long)((end - start) * 1000.0 / Stopwatch.Frequency);
+                batchResult.ClsElapsedTime = (long)((end - start) * 1000.0 / Stopwatch.Frequency);
 
                 var task = BatchPostProcessAsync(output0, batchResult, item);
                 producer.Add(task);
@@ -274,10 +274,10 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
             await foreach (ClsPreResultBatch item in channelPre.Reader.ReadAllAsync())
             {
 
-                long start = Stopwatch.GetTimestamp();
+                _stopwatch.Restart();
                 var output0 = InferenceRun(item.InputData.InputOrtValue);
-                long end = Stopwatch.GetTimestamp();
-                batchResult.ClsTimestamp = (long)((end - start) * 1000.0 / Stopwatch.Frequency);
+                _stopwatch.Stop();
+                batchResult.ClsElapsedTime = _stopwatch.ElapsedMilliseconds;
                 _matPool.Return(item.InputData);
                 var task = BatchPostProcessAsync(output0, batchResult, item);
                 producer.Add(task);

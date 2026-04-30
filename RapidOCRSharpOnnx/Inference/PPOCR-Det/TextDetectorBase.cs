@@ -110,7 +110,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 
                 var output0 = InferenceRun(inputOrtValue);
                 long end = Stopwatch.GetTimestamp();
-                batchResults[item.ImagePathIndex.Index].DetTimestamp = (long)((end - start) * 1000.0 / Stopwatch.Frequency);
+                batchResults[item.ImagePathIndex.Index].DetElapsedTime = (long)((end - start) * 1000.0 / Stopwatch.Frequency);
 
                 var task = BatchPostProcessAsync(output0, item, batchResults[item.ImagePathIndex.Index], nextChannelWriter);
                 tasks.Add(task);
