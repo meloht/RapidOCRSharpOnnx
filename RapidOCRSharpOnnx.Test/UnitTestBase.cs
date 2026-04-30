@@ -11,7 +11,7 @@ namespace RapidOCRSharpOnnx.Test
         protected const string clsModelServerName = "ch_PP-LCNet_x1_0_textline_ori_cls_server.onnx";
         protected const string recModelName = "ch_PP-OCRv5_rec_mobile.onnx";
         protected const string txtpng = "txt.png";
-        protected const string headerTextpng = "headerText.png";
+        protected const string headerTextpng = "en.png";
         protected const string testClspng = "test_cls.png";
 
         protected const string txtRes = "Let's start collaborating Select a chat or channel from the list to get started.";
