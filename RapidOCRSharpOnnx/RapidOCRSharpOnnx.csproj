@@ -25,7 +25,6 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-    <None Include="Inference\PPOCR-Det\Models\DetBoxItem.cs" />
   </ItemGroup>
 
   <ItemGroup>
