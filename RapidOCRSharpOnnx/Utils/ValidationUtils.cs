@@ -35,8 +35,7 @@ namespace RapidOCRSharpOnnx.Utils
         }
 
 
-
-        public static List<string> ValidationImageBatch(string imgDir, int batchSize)
+        public static List<string> ValidationImageBatch(string imgDir)
         {
             if (string.IsNullOrWhiteSpace(imgDir))
             {
@@ -46,10 +45,7 @@ namespace RapidOCRSharpOnnx.Utils
             {
                 throw new DirectoryNotFoundException($"{imgDir} directory not found");
             }
-            if (batchSize <= 0)
-            {
-                throw new ArgumentNullException("batchSize must be greater than zero");
-            }
+           
 
             var files = UtilsHelper.GetFilesFromDirectory(imgDir);
             if (files.Count == 0)
@@ -59,5 +55,13 @@ namespace RapidOCRSharpOnnx.Utils
             }
             return files;
         }
+        public static void ValidationBatchPoolSize(int batchSize)
+        {
+            if (batchSize <= 0)
+            {
+                throw new ArgumentNullException("BatchPoolSize must be greater than zero");
+            }
+        }
+
     }
 }
