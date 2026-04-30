@@ -154,7 +154,7 @@ namespace RapidOCRSharpOnnx.Utils
                 float boxH = UtilsHelper.GetBoxHeight(box);
                 float boxW = UtilsHelper.GetBoxWidth(box);
 
-                bool vertical = boxH > 2 * boxW;
+                bool vertical = boxH >= 1.6 * boxW;
 
                 using SKFont font = GetFont(box, txt, boxH, boxW, vertical);
                 // ===== 文本 =====
@@ -194,7 +194,7 @@ namespace RapidOCRSharpOnnx.Utils
             SKFont font = new(_typeface, fontSize);
             if (vertical)
             {
-                font.Size = FitTextSizeBinary(font, boxW * 0.8f);
+                font.Size = FitTextSizeBinary(font, boxW * 0.68f);
             }
             else
             {
