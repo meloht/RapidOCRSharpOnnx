@@ -44,8 +44,8 @@ namespace RapidOCRSharpOnnx.ConsoleApp
 
             using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderDirectML(new OcrConfig(detectPath, recogPath, LangRec.EN, OCRVersion.PPOCRV5, clsPath), _deviceId));
 
-            string resPath = $"res_{Path.GetFileName(imgPath)}";
-            var result = ocr.RecognizeText(imgPath, resPath);
+            string savePath = $"res_{Path.GetFileName(imgPath)}";
+            var result = ocr.RecognizeText(imgPath, savePath);
             Console.WriteLine($"result: {result.ToString()}");
         }
 
