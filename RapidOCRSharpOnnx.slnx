@@ -7,7 +7,7 @@
     <Platform Solution="*|x64" Project="x64" />
   </Project>
   <Project Path="RapidOCRSharpOnnx.ConsoleGPU/RapidOCRSharpOnnx.ConsoleGPU.csproj" Id="105e285e-94c5-437f-80f8-29174e6e492e">
-    <Platform Solution="Debug|x64" Project="x64" />
+    <Platform Solution="*|x64" Project="x64" />
     <Build Solution="*|Any CPU" Project="false" />
     <Build Solution="Release|x64" Project="false" />
   </Project>
@@ -15,10 +15,12 @@
     <Platform Solution="*|x64" Project="x64" />
   </Project>
   <Project Path="RapidOCRSharpOnnx.TestCommon/RapidOCRSharpOnnx.TestCommon.csproj" Id="19c9d315-a5e5-4c37-8e71-7b5efa3eba70">
-    <Platform Solution="Debug|x64" Project="x64" />
+    <Platform Solution="*|x64" Project="x64" />
+    <Build Solution="Release|*" Project="false" />
   </Project>
   <Project Path="RapidOCRSharpOnnx.TestGPU/RapidOCRSharpOnnx.TestGPU.csproj" Id="22d5d1d7-50c0-491c-836a-35223896a2a3">
-    <Platform Solution="Debug|x64" Project="x64" />
+    <Platform Solution="*|x64" Project="x64" />
+    <Build Solution="Release|*" Project="false" />
   </Project>
   <Project Path="RapidOCRSharpOnnx/RapidOCRSharpOnnx.csproj">
     <Platform Solution="*|x64" Project="x64" />
