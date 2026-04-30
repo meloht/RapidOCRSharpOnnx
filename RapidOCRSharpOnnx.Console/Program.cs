@@ -14,11 +14,11 @@ namespace RapidOCRSharpOnnx.ConsoleApp
         {
             var buildNumber = Environment.OSVersion.Version.Build;
             //TestParallelBatch();
-            TestBatch();
+            //TestBatch();
             //_=TestBatchForeachAsync();
             //TestListSeq();
              //TestListSeq2();
-            //TestImage();
+            TestImage();
 
             //Parallel.For(0, 100, i =>
             //{
@@ -32,7 +32,7 @@ namespace RapidOCRSharpOnnx.ConsoleApp
         private static void TestImage()
         {
             //string imgPath = @"E:\Hp\ai-image\ADFtools\headerText.png";
-            string imgPath = @"D:\code\model\OCRTestImages\text_cls.jpg";
+            string imgPath = @"D:\code\model\OCRTestImages\mulu.png";
             //string imgPath = @"D:\code\model\OCRTestImages\text_vertical_words.png";
             //string detectPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-OCRv4_det_mobile.onnx";
             //string recogPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-OCRv4_rec_mobile.onnx";
@@ -44,8 +44,8 @@ namespace RapidOCRSharpOnnx.ConsoleApp
 
             using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderDirectML(new OcrConfig(detectPath, recogPath, LangRec.EN, OCRVersion.PPOCRV5, clsPath), _deviceId));
 
-            string resPath = $"res_{Path.GetFileName(imgPath)}";
-            var result = ocr.RecognizeText(imgPath, resPath);
+            string savePath = $"res_{Path.GetFileName(imgPath)}";
+            var result = ocr.RecognizeText(imgPath, savePath);
             Console.WriteLine($"result: {result.ToString()}");
         }
 
