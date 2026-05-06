@@ -193,11 +193,11 @@ namespace RapidOCRSharpOnnx.Utils
             SKFont font = new(_typeface, fontSize);
             if (vertical)
             {
-                font.Size = FitTextSizeBinary(font, boxW * 0.68f);
+                font.Size = FitTextSizeBinary(font, boxW * _ocrConfig.DrawVerticalFontScaling);
             }
             else
             {
-                font.Size = FitTextSizeBinary(font, boxH * 0.88f);
+                font.Size = FitTextSizeBinary(font, boxH * _ocrConfig.DrawHorizontalFontScaling);
             }
 
             return font;
