@@ -7,7 +7,8 @@ namespace RapidOCRSharpOnnx.Configurations
 {
     public class OcrConfig
     {
-        public float TextScore { get; set; } = 0.5f;
+        public float DrawHorizontalFontScaling { get; set; } = 0.8f;
+        public float DrawVerticalFontScaling { get; set; } = 0.62f;
         public int MinHeight { get; set; } = 30;
         public int WidthHeightRatio { get; set; } = 8;
         public int MaxSideLen { get; set; } = 2000;
@@ -48,7 +49,7 @@ namespace RapidOCRSharpOnnx.Configurations
             DetectorConfig = new DetectorConfig { ModelPath = detectorModelPath };
             RecognizerConfig = new RecognizerConfig { ModelPath = recognizerModelPath, LangRec = langFont };
 
-            if (!string.IsNullOrWhiteSpace(classifierModelPath) )
+            if (!string.IsNullOrWhiteSpace(classifierModelPath))
             {
                 ClassifierConfig = new ClassifierConfig { OCRVersion = ocrVersion, ModelPath = classifierModelPath };
             }
