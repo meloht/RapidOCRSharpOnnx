@@ -7,7 +7,7 @@ namespace RapidOCRSharpOnnx.Configurations
 {
     public class OcrConfig
     {
-        public float DrawHorizontalFontScaling { get; set; } = 0.8f;
+        public float DrawHorizontalFontScaling { get; set; } = 0.86f;
         public float DrawVerticalFontScaling { get; set; } = 0.62f;
         public int MinHeight { get; set; } = 30;
         public int WidthHeightRatio { get; set; } = 8;
