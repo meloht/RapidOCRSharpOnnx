@@ -124,32 +124,35 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
             if (channels != 3)
                 throw new ArgumentException("Only 3-channel images supported");
 
-            byte* ptr = (byte*)mat.DataPointer;
-
-            int hw = width * height;
-
-            // 三个通道分开写（CHW）
-            int rOffset = 0;
-            int gOffset = hw;
-            int bOffset = hw * 2;
-            float scale = 1.0f / 255.0f;
-
-            for (int y = 0; y < height; y++)
+            fixed (float* dst = data)
             {
-                int rowOffset = y * width * channels;
+                byte* ptr = (byte*)mat.DataPointer;
 
-                for (int x = 0; x < width; x++)
+                int hw = width * height;
+                // 三个通道分开写（CHW）
+                int rOffset = 0;
+                int gOffset = hw;
+                int bOffset = hw * 2;
+                float scale = 1.0f / 255.0f;
+
+                for (int y = 0; y < height; y++)
                 {
-                    int srcIndex = rowOffset + x * channels;
+                    int rowOffset = y * width * channels;
 
-                    int dstIndex = y * width + x;
+                    for (int x = 0; x < width; x++)
+                    {
+                        int srcIndex = rowOffset + x * channels;
 
-                    //  BGR -> RGB + 归一化 + CHW
-                    data[rOffset + dstIndex] = ((float)ptr[srcIndex + 2] * scale - _ocrConfig.DetectorConfig.Mean[0]) / _ocrConfig.DetectorConfig.Std[0];
-                    data[gOffset + dstIndex] = ((float)ptr[srcIndex + 1] * scale - _ocrConfig.DetectorConfig.Mean[1]) / _ocrConfig.DetectorConfig.Std[1];
-                    data[bOffset + dstIndex] = ((float)ptr[srcIndex + 0] * scale - _ocrConfig.DetectorConfig.Mean[2]) / _ocrConfig.DetectorConfig.Std[2];
+                        int dstIndex = y * width + x;
+
+                        //  BGR -> RGB + 归一化 + CHW
+                        dst[rOffset + dstIndex] = ((float)ptr[srcIndex + 2] * scale - _ocrConfig.DetectorConfig.Mean[0]) / _ocrConfig.DetectorConfig.Std[0];
+                        dst[gOffset + dstIndex] = ((float)ptr[srcIndex + 1] * scale - _ocrConfig.DetectorConfig.Mean[1]) / _ocrConfig.DetectorConfig.Std[1];
+                        dst[bOffset + dstIndex] = ((float)ptr[srcIndex + 0] * scale - _ocrConfig.DetectorConfig.Mean[2]) / _ocrConfig.DetectorConfig.Std[2];
+                    }
                 }
             }
+           
         }
 
         private unsafe void ToCHW_RGB_Normalized_AVX2(Mat mat, float[] data)
