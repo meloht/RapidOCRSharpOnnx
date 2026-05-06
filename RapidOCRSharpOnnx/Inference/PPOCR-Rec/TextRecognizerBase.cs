@@ -44,7 +44,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
         {
             var map = _session.ModelMetadata.CustomMetadataMap;
             if (map.ContainsKey(key))
-                return map[key].Split('\n', StringSplitOptions.RemoveEmptyEntries).ToList();
+                return map[key].Split('\n').ToList();
 
             return new List<string>();
         }

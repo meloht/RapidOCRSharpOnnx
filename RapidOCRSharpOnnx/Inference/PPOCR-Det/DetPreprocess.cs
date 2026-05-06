@@ -183,10 +183,10 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                         byte r = rowPtr[srcIdx + 2];
 
                         //  BGR -> RGB + 归一化 + CHW
-
+                   
                         dst[rOffset + dstIdx] = ((float)r * scale - _ocrConfig.DetectorConfig.Mean[0]) / _ocrConfig.DetectorConfig.Std[0];
-                        dst[gOffset + dstIdx] = ((float)g * scale - _ocrConfig.DetectorConfig.Mean[0]) / _ocrConfig.DetectorConfig.Std[0];
-                        dst[bOffset + dstIdx] = ((float)b * scale - _ocrConfig.DetectorConfig.Mean[0]) / _ocrConfig.DetectorConfig.Std[0];
+                        dst[gOffset + dstIdx] = ((float)g * scale - _ocrConfig.DetectorConfig.Mean[1]) / _ocrConfig.DetectorConfig.Std[1];
+                        dst[bOffset + dstIdx] = ((float)b * scale - _ocrConfig.DetectorConfig.Mean[2]) / _ocrConfig.DetectorConfig.Std[2];
                     }
                 }
             }
@@ -259,7 +259,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                         vr = Avx.Multiply(vr, scaleVec);
                         vg = Avx.Multiply(vg, scaleVec);
                         vb = Avx.Multiply(vb, scaleVec);
-
+                       
                         int idx = y * width + x;
 
                         Avx.Store(dstR + idx, vr);
