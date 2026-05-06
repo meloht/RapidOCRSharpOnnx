@@ -19,6 +19,7 @@ namespace RapidOCRSharpOnnx.Configurations
         public float UnclipRatio { get; set; } = 1.6f;
         public bool UseDilation { get; set; } = true;
         public ScoreMode ScoreMode { get; set; } = ScoreMode.FAST;
+        public required OCRVersion OCRVersion { get; set; }
 
 
 

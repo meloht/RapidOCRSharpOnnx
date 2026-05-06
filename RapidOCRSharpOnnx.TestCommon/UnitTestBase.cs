@@ -18,7 +18,7 @@ namespace RapidOCRSharpOnnx.TestCommon
         protected const string Res_txt = "Let's start collaborating Select a chat or channel from the list to get started.";
         protected const string Res_en = "She walks in beauty, like the night Of  cloudless climes and starry skies; And all that's best of dark and bright Meet in her aspect and l her eyes; Thus mellowed to that tender light Which heaven to gaudy day denies.";
         protected const string Res_testCls = "我";
-        protected const string Res_textVerticalWords = "已取之時不參一人 是非不得間之人要取之 有評是是非非之士師也 見 而";
+        protected const string Res_textVerticalWords = "已取之時不參一人 是非不得問之人要取之 有評是是非非之士師也 見 而";
 
         protected string detectPath;
         protected string clsMobilePath;
