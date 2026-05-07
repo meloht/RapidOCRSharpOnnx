@@ -46,7 +46,7 @@ namespace RapidOCRSharpOnnx.Configurations
                 throw new ArgumentException("Recognizer ModelPath is null or empty.");
             }
 
-            DetectorConfig = new DetectorConfig { ModelPath = detectorModelPath };
+            DetectorConfig = new DetectorConfig { ModelPath = detectorModelPath, OCRVersion = ocrVersion};
             RecognizerConfig = new RecognizerConfig { ModelPath = recognizerModelPath, LangRec = langFont };
 
             if (!string.IsNullOrWhiteSpace(classifierModelPath))

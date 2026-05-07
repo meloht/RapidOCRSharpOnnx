@@ -74,94 +74,146 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
             //float[] inputData = new float[resizedImg.Height * resizedImg.Width * 3];
             int len = resizedImg.Height * resizedImg.Width * 3;
             float[] inputData = ArrayPool<float>.Shared.Rent(len);
-            //NormalizeAndPermute(resizedImg, inputData);
 
-            if (Avx2.IsSupported)
+            if (_ocrConfig.DetectorConfig.OCRVersion == OCRVersion.PPOCRV5)
             {
-                ToCHW_RGB_Normalized_AVX2(resizedImg, inputData);
+                if (Avx2.IsSupported)
+                {
+                    ToCHW_RGB_Normalized_AVX2V5(resizedImg, inputData);
+                }
+                else
+                {
+                    ToCHW_RGB_NormalizedV5(resizedImg, inputData);
+                }
             }
             else
             {
-                ToCHW_RGB_Normalized(resizedImg, inputData);
-            }
-
-            return new DetPreprocessData(inputData, [1, 3, resizedImg.Height, resizedImg.Width]);
-        }
-
-
-
-        /// <summary>
-        ///  归一化并转换为 Tensor (HWC -> CHW)
-        /// </summary>
-        private float[] NormalizeAndPermute(Mat img, float[] data)
-        {
-            int height = img.Height;
-            int width = img.Width;
-            int channels = img.Channels();
-            float scale = 1.0f / 255.0f;
-            int index = 0;
-            for (int c = 0; c < channels; c++)          // 通道（R=0, G=1, B=2）
-            {
-                for (int h = 0; h < height; h++)  // 高度
+                if (Avx2.IsSupported)
                 {
-                    for (int w = 0; w < width; w++)  // 宽度
-                    {
-                        var vec = img.At<Vec3b>(h, w);
-                        data[index++] = ((float)vec[c] * scale - _ocrConfig.DetectorConfig.Mean[c]) / _ocrConfig.DetectorConfig.Std[c];
-                    }
+                    ToCHW_RGB_Normalized_AVX2V4(resizedImg, inputData);
+                }
+                else
+                {
+                    ToCHW_RGB_NormalizedV4(resizedImg, inputData);
                 }
             }
-            return data;
 
+            return new DetPreprocessData(inputData, [1, resizedImg.Channels(), resizedImg.Height, resizedImg.Width]);
         }
 
-        private unsafe void ToCHW_RGB_Normalized(Mat mat, float[] data)
+
+
+        private unsafe void ToCHW_RGB_NormalizedV5(Mat mat, float[] data)
         {
-            int width = mat.Cols;
-            int height = mat.Rows;
+            int width = mat.Width;
+            int height = mat.Height;
             int channels = mat.Channels();
 
             if (channels != 3)
                 throw new ArgumentException("Only 3-channel images supported");
 
-            byte* ptr = (byte*)mat.DataPointer;
 
-            int hw = width * height;
+            int step = (int)mat.Step();
 
-            // 三个通道分开写（CHW）
-            int rOffset = 0;
-            int gOffset = hw;
-            int bOffset = hw * 2;
-            float scale = 1.0f / 255.0f;
-
-            for (int y = 0; y < height; y++)
+            fixed (float* dst = data)
             {
-                int rowOffset = y * width * channels;
+                byte* ptr = (byte*)mat.DataPointer;
 
-                for (int x = 0; x < width; x++)
+                int hw = width * height;
+                // 三个通道分开写（CHW）
+                int rOffset = 0;
+                int gOffset = hw;
+                int bOffset = hw * 2;
+                float scale = 1.0f / 255.0f;
+
+                for (int y = 0; y < height; y++)
                 {
-                    int srcIndex = rowOffset + x * channels;
+                    byte* rowPtr = ptr + y * step;
+                    int dstRowBase = y * width;
 
-                    int dstIndex = y * width + x;
+                    for (int x = 0; x < width; x++)
+                    {
+                        int dstIdx = dstRowBase + x;
 
-                    //  BGR -> RGB + 归一化 + CHW
-                    data[rOffset + dstIndex] = ((float)ptr[srcIndex + 2] * scale - _ocrConfig.DetectorConfig.Mean[0]) / _ocrConfig.DetectorConfig.Std[0];
-                    data[gOffset + dstIndex] = ((float)ptr[srcIndex + 1] * scale - _ocrConfig.DetectorConfig.Mean[1]) / _ocrConfig.DetectorConfig.Std[1];
-                    data[bOffset + dstIndex] = ((float)ptr[srcIndex + 0] * scale - _ocrConfig.DetectorConfig.Mean[2]) / _ocrConfig.DetectorConfig.Std[2];
+                        int srcIdx = x * channels;
+                        byte b = rowPtr[srcIdx + 0];
+                        byte g = rowPtr[srcIdx + 1];
+                        byte r = rowPtr[srcIdx + 2];
+
+                        //  BGR -> RGB + 归一化 + CHW
+
+                        dst[rOffset + dstIdx] = (float)r * scale;
+                        dst[gOffset + dstIdx] = (float)g * scale;
+                        dst[bOffset + dstIdx] = (float)b * scale;
+
+                    }
                 }
             }
+
+        }
+        private unsafe void ToCHW_RGB_NormalizedV4(Mat mat, float[] data)
+        {
+            int width = mat.Width;
+            int height = mat.Height;
+            int channels = mat.Channels();
+
+            if (channels != 3)
+                throw new ArgumentException("Only 3-channel images supported");
+
+
+            int step = (int)mat.Step();
+
+            fixed (float* dst = data)
+            {
+                byte* ptr = (byte*)mat.DataPointer;
+
+                int hw = width * height;
+                // 三个通道分开写（CHW）
+                int rOffset = 0;
+                int gOffset = hw;
+                int bOffset = hw * 2;
+                float scale = 1.0f / 255.0f;
+
+                for (int y = 0; y < height; y++)
+                {
+                    byte* rowPtr = ptr + y * step;
+                    int dstRowBase = y * width;
+
+                    for (int x = 0; x < width; x++)
+                    {
+                        int dstIdx = dstRowBase + x;
+
+                        int srcIdx = x * channels;
+                        byte b = rowPtr[srcIdx + 0];
+                        byte g = rowPtr[srcIdx + 1];
+                        byte r = rowPtr[srcIdx + 2];
+
+                        //  BGR -> RGB + 归一化 + CHW
+
+                        dst[rOffset + dstIdx] = ((float)r * scale - _ocrConfig.DetectorConfig.Mean[0]) / _ocrConfig.DetectorConfig.Std[0];
+                        dst[gOffset + dstIdx] = ((float)g * scale - _ocrConfig.DetectorConfig.Mean[1]) / _ocrConfig.DetectorConfig.Std[1];
+                        dst[bOffset + dstIdx] = ((float)b * scale - _ocrConfig.DetectorConfig.Mean[2]) / _ocrConfig.DetectorConfig.Std[2];
+                    }
+                }
+            }
+
         }
 
-        private unsafe void ToCHW_RGB_Normalized_AVX2(Mat mat, float[] data)
+
+        private unsafe void ToCHW_RGB_Normalized_AVX2V5(Mat mat, float[] data)
         {
             if (!Avx2.IsSupported)
                 throw new NotSupportedException("AVX2 not supported");
 
-            int width = mat.Width;
-            int height = mat.Height;
 
             fixed (float* dst = data)
             {
+                int width = mat.Width;
+                int height = mat.Height;
+
+
+                float scale = 1.0f / 255.0f;
+
                 byte* src = (byte*)mat.DataPointer;
 
                 int hw = width * height;
@@ -171,7 +223,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                 float* dstB = dst + hw * 2;
                 float inv255 = 1.0f / 255.0f;
 
-                Vector256<float> scale = Vector256.Create(1.0f / 255.0f);
+                Vector256<float> scaleVec = Vector256.Create(scale);
 
                 int stride = width * 3;
                 int x = 0;
@@ -210,9 +262,9 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                             (float)b4, (float)b5, (float)b6, (float)b7);
 
                         // 归一化
-                        vr = Avx.Multiply(vr, scale);
-                        vg = Avx.Multiply(vg, scale);
-                        vb = Avx.Multiply(vb, scale);
+                        vr = Avx.Multiply(vr, scaleVec);
+                        vg = Avx.Multiply(vg, scaleVec);
+                        vb = Avx.Multiply(vb, scaleVec);
 
                         int idx = y * width + x;
 
@@ -231,6 +283,111 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                         dstR[idx] = p[2] * inv255;
                         dstG[idx] = p[1] * inv255;
                         dstB[idx] = p[0] * inv255;
+                    }
+                }
+            }
+        }
+
+
+        private unsafe void ToCHW_RGB_Normalized_AVX2V4(Mat mat, float[] data)
+        {
+            if (!Avx2.IsSupported)
+                throw new NotSupportedException("AVX2 not supported");
+
+
+            fixed (float* dst = data)
+            {
+                int width = mat.Width;
+                int height = mat.Height;
+
+
+                float scale = 1.0f / 255.0f;
+
+                byte* src = (byte*)mat.DataPointer;
+
+                int hw = width * height;
+
+                float* dstR = dst;
+                float* dstG = dst + hw;
+                float* dstB = dst + hw * 2;
+
+
+                Vector256<float> scaleVec = Vector256.Create(scale);
+
+                Vector256<float> meanVecR = Vector256.Create(_ocrConfig.DetectorConfig.Mean[0]);
+                Vector256<float> meanVecG = Vector256.Create(_ocrConfig.DetectorConfig.Mean[1]);
+                Vector256<float> meanVecB = Vector256.Create(_ocrConfig.DetectorConfig.Mean[2]);
+
+                Vector256<float> stdVecR = Vector256.Create(_ocrConfig.DetectorConfig.Std[0]);
+                Vector256<float> stdVecG = Vector256.Create(_ocrConfig.DetectorConfig.Std[1]);
+                Vector256<float> stdVecB = Vector256.Create(_ocrConfig.DetectorConfig.Std[2]);
+
+                int stride = width * 3;
+                int x = 0;
+                for (int y = 0; y < height; y++)
+                {
+                    byte* row = src + y * stride;
+
+                    x = 0;
+
+                    // 每次处理 8 像素（24 字节）
+                    for (; x <= width - 8; x += 8)
+                    {
+                        byte* p = row + x * 3;
+
+                        // 手动加载（因为不是对齐的）
+                        uint b0 = p[0]; uint g0 = p[1]; uint r0 = p[2];
+                        uint b1 = p[3]; uint g1 = p[4]; uint r1 = p[5];
+                        uint b2 = p[6]; uint g2 = p[7]; uint r2 = p[8];
+                        uint b3 = p[9]; uint g3 = p[10]; uint r3 = p[11];
+                        uint b4 = p[12]; uint g4 = p[13]; uint r4 = p[14];
+                        uint b5 = p[15]; uint g5 = p[16]; uint r5 = p[17];
+                        uint b6 = p[18]; uint g6 = p[19]; uint r6 = p[20];
+                        uint b7 = p[21]; uint g7 = p[22]; uint r7 = p[23];
+
+                        // 构建向量（R）
+                        var vr = Vector256.Create(
+                            (float)r0, (float)r1, (float)r2, (float)r3,
+                            (float)r4, (float)r5, (float)r6, (float)r7);
+
+                        var vg = Vector256.Create(
+                            (float)g0, (float)g1, (float)g2, (float)g3,
+                            (float)g4, (float)g5, (float)g6, (float)g7);
+
+                        var vb = Vector256.Create(
+                            (float)b0, (float)b1, (float)b2, (float)b3,
+                            (float)b4, (float)b5, (float)b6, (float)b7);
+
+                        // 归一化
+                        vr = Avx.Multiply(vr, scaleVec);
+                        vg = Avx.Multiply(vg, scaleVec);
+                        vb = Avx.Multiply(vb, scaleVec);
+
+                        vr = Avx.Subtract(vr, meanVecR);
+                        vg = Avx.Subtract(vg, meanVecG);
+                        vb = Avx.Subtract(vb, meanVecB);
+
+                        vr = Avx.Divide(vr, stdVecR);
+                        vg = Avx.Divide(vg, stdVecG);
+                        vb = Avx.Divide(vb, stdVecB);
+
+                        int idx = y * width + x;
+
+                        Avx.Store(dstR + idx, vr);
+                        Avx.Store(dstG + idx, vg);
+                        Avx.Store(dstB + idx, vb);
+                    }
+
+                    // 处理尾部
+                    for (; x < width; x++)
+                    {
+                        byte* p = row + x * 3;
+
+                        int idx = y * width + x;
+
+                        dstR[idx] = (p[2] * scale - _ocrConfig.DetectorConfig.Mean[0]) / _ocrConfig.DetectorConfig.Std[0];
+                        dstG[idx] = (p[1] * scale - _ocrConfig.DetectorConfig.Mean[1]) / _ocrConfig.DetectorConfig.Std[1];
+                        dstB[idx] = (p[0] * scale - _ocrConfig.DetectorConfig.Mean[2]) / _ocrConfig.DetectorConfig.Std[2];
                     }
                 }
             }
