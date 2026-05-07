@@ -13,14 +13,19 @@
 	<PackageTags>ocr;paddle-ocr;paddleocr;csharp;onnx;onnx-runtime;cross-platform;cpu;cuda;gpu;tensorrt;coreml;directml;openvino;computer-vision;deep-learning;inference</PackageTags>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
 	<Authors>meloht</Authors>
-	<Version>1.0.3</Version>
+	<Version>1.0.4</Version>
 	<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 	<Copyright>Copyright © meloht</Copyright>
-	<PackageReleaseNotes>RapidOCRSharpOnnx 1.0.3 PP-OCRv4 image preprocess SIMD optimize</PackageReleaseNotes>
+	<PackageReleaseNotes>RapidOCRSharpOnnx 1.0.4 nuget logo</PackageReleaseNotes>
 	<Description>a high performance, cross-platform PaddleOCR C# inference library base on OpenCV and ONNX Runtime</Description>
+	<PackageIcon>RapidOCRSharpOnnx_256.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\imgs\RapidOCRSharpOnnx_256.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Include="..\README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
