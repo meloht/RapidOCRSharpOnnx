@@ -225,11 +225,11 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 
                 Vector256<float> scaleVec = Vector256.Create(scale);
 
-                int stride = width * 3;
+                int step = (int)mat.Step();
                 int x = 0;
                 for (int y = 0; y < height; y++)
                 {
-                    byte* row = src + y * stride;
+                    byte* row = src + y * step;
 
                     x = 0;
 
@@ -322,11 +322,11 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                 Vector256<float> stdVecG = Vector256.Create(_ocrConfig.DetectorConfig.Std[1]);
                 Vector256<float> stdVecB = Vector256.Create(_ocrConfig.DetectorConfig.Std[2]);
 
-                int stride = width * 3;
+                int step = (int)mat.Step();
                 int x = 0;
                 for (int y = 0; y < height; y++)
                 {
-                    byte* row = src + y * stride;
+                    byte* row = src + y * step;
 
                     x = 0;
 
