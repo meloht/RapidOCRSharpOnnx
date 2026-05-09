@@ -1,84 +1,84 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-	<TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <Platforms>AnyCPU;x64</Platforms>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<Title>RapidOCRSharpOnnx</Title>
-	<PackageProjectUrl>https://github.com/meloht/RapidOCRSharpOnnx</PackageProjectUrl>
-	<RepositoryUrl>https://github.com/meloht/RapidOCRSharpOnnx</RepositoryUrl>
-	<PackageTags>ocr;paddle-ocr;paddleocr;csharp;onnx;onnx-runtime;cross-platform;cpu;cuda;gpu;tensorrt;coreml;directml;openvino;computer-vision;text-recognition;text-detection</PackageTags>
-	<PackageReadmeFile>README.md</PackageReadmeFile>
-	<Authors>meloht</Authors>
-	<Version>1.0.4</Version>
-	<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-	<Copyright>Copyright © meloht</Copyright>
-	<PackageReleaseNotes>RapidOCRSharpOnnx 1.0.4 nuget logo</PackageReleaseNotes>
-	<Description>a high performance, cross-platform PaddleOCR C# inference library base on OpenCV and ONNX Runtime</Description>
-	<PackageIcon>RapidOCRSharpOnnx_256.png</PackageIcon>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;osx-x64</RuntimeIdentifiers>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Title>RapidOCRSharpOnnx</Title>
+		<PackageProjectUrl>https://github.com/meloht/RapidOCRSharpOnnx</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/meloht/RapidOCRSharpOnnx</RepositoryUrl>
+		<PackageTags>ocr;paddle-ocr;paddleocr;csharp;onnx;onnx-runtime;cross-platform;cpu;cuda;gpu;tensorrt;coreml;directml;openvino;computer-vision;text-recognition;text-detection</PackageTags>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<Authors>meloht</Authors>
+		<Version>1.0.5</Version>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<Copyright>Copyright © meloht</Copyright>
+		<PackageReleaseNotes>RapidOCRSharpOnnx 1.0.5 build win-x64;win-arm64;linux-x64;linux-arm64;osx-x64</PackageReleaseNotes>
+		<Description>a high performance, cross-platform PaddleOCR C# inference library base on OpenCV and ONNX Runtime</Description>
+		<PackageIcon>RapidOCRSharpOnnx_256.png</PackageIcon>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Include="..\imgs\RapidOCRSharpOnnx_256.png">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <None Include="..\README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="..\imgs\RapidOCRSharpOnnx_256.png">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+		<None Include="..\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Clipper2" Version="2.0.0" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.24.3" />
-    <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260330" />
-    <PackageReference Include="SkiaSharp" Version="3.119.2" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Clipper2" Version="2.0.0" />
+		<PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.24.3" />
+		<PackageReference Include="OpenCvSharp4" Version="4.13.0.20260330" />
+		<PackageReference Include="SkiaSharp" Version="3.119.2" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Update="Assets\Fonts\arabic.ttf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Fonts\chinese_cht.ttf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Fonts\cyrillic.ttf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Fonts\devanagari_Martel-Regular.ttf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Fonts\el.ttf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Fonts\FZYTK.TTF">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Fonts\japan.ttc">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Fonts\kannada.ttf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Fonts\korean.ttf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Fonts\latin.ttf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Fonts\tamil.ttf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Fonts\telugu.ttf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Fonts\th.ttf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<None Update="Assets\Fonts\arabic.ttf">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Assets\Fonts\chinese_cht.ttf">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Assets\Fonts\cyrillic.ttf">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Assets\Fonts\devanagari_Martel-Regular.ttf">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Assets\Fonts\el.ttf">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Assets\Fonts\FZYTK.TTF">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Assets\Fonts\japan.ttc">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Assets\Fonts\kannada.ttf">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Assets\Fonts\korean.ttf">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Assets\Fonts\latin.ttf">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Assets\Fonts\tamil.ttf">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Assets\Fonts\telugu.ttf">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Assets\Fonts\th.ttf">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 
 </Project>

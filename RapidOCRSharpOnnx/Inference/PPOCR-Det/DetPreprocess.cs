@@ -134,11 +134,11 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                     for (int x = 0; x < width; x++)
                     {
                         int dstIdx = dstRowBase + x;
+                        byte* pixel = rowPtr + x * channels;
 
-                        int srcIdx = x * channels;
-                        byte b = rowPtr[srcIdx + 0];
-                        byte g = rowPtr[srcIdx + 1];
-                        byte r = rowPtr[srcIdx + 2];
+                        byte b = pixel[0];
+                        byte g = pixel[1];
+                        byte r = pixel[2];
 
                         //  BGR -> RGB + 归一化 + CHW
 
@@ -182,11 +182,11 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                     for (int x = 0; x < width; x++)
                     {
                         int dstIdx = dstRowBase + x;
-
-                        int srcIdx = x * channels;
-                        byte b = rowPtr[srcIdx + 0];
-                        byte g = rowPtr[srcIdx + 1];
-                        byte r = rowPtr[srcIdx + 2];
+                        byte* pixel = rowPtr + x * channels;
+                       
+                        byte b = pixel[0];
+                        byte g = pixel[1];
+                        byte r = pixel[2];
 
                         //  BGR -> RGB + 归一化 + CHW
 
