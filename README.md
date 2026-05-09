@@ -41,7 +41,7 @@ Referring to the [RapidOCR](https://github.com/RapidAI/RapidOCR) project, it is 
 </div>
 
 # Build Package 
-win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64;android-arm64;android-x64;ios-arm64
+AnyCPU RapidOCRSharpOnnx C# library. A package of separate native bindings for your OS is required.
 
 # Usage
 ### 1. Export model to ONNX format:
