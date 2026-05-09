@@ -4,7 +4,7 @@
 		<TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+		<RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64;android-arm64;android-x64;ios-arm64</RuntimeIdentifiers>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Title>RapidOCRSharpOnnx</Title>
@@ -13,10 +13,10 @@
 		<PackageTags>ocr;paddle-ocr;paddleocr;csharp;onnx;onnx-runtime;cross-platform;cpu;cuda;gpu;tensorrt;coreml;directml;openvino;computer-vision;text-recognition;text-detection</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Authors>meloht</Authors>
-		<Version>1.0.5</Version>
+		<Version>1.0.6</Version>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 		<Copyright>Copyright © meloht</Copyright>
-		<PackageReleaseNotes>RapidOCRSharpOnnx 1.0.5 build win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64</PackageReleaseNotes>
+		<PackageReleaseNotes>RapidOCRSharpOnnx 1.0.6 build android-arm64;android-x64;ios-arm64;Microsoft.ML.OnnxRuntime.Managed 1.25.1</PackageReleaseNotes>
 		<Description>a high performance, cross-platform PaddleOCR C# inference library base on OpenCV and ONNX Runtime</Description>
 		<PackageIcon>RapidOCRSharpOnnx_256.png</PackageIcon>
 	</PropertyGroup>
@@ -34,7 +34,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Clipper2" Version="2.0.0" />
-		<PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.24.3" />
+		<PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.25.1" />
 		<PackageReference Include="OpenCvSharp4" Version="4.13.0.20260330" />
 		<PackageReference Include="SkiaSharp" Version="3.119.2" />
 	</ItemGroup>
