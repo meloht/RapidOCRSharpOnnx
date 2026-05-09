@@ -15,7 +15,7 @@ namespace RapidOCRSharpOnnx
     {
         private IExecutionProvider _executionProvider;
         private IExecutePipeline _executePipeline;
-
+        private bool disposedValue;
 
         public OcrConfig Configuration
         {
@@ -109,15 +109,12 @@ namespace RapidOCRSharpOnnx
         /// <param name="processCallback">callback interface(optional)</param>
         /// <param name="receiveAction">receive result action delegate(optional)</param>
         /// <returns>Result including detect result & classifier result(optional) recognize result & image path & text block  & performance time</returns>
-        public async IAsyncEnumerable<OcrBatchResult> BatchForeachAsync(List<string> imageList, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
+        public IAsyncEnumerable<OcrBatchResult> BatchForeachAsync(List<string> imageList, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
         {
             var list = UtilsHelper.GetFilesFromListPaths(imageList);
             ValidationUtils.ValidationImageListCount(list);
             ValidationUtils.ValidationBatchPoolSize(Configuration.BatchPoolSize);
-            await foreach (var result in _executePipeline.BatchForeachAsync(imageList, saveDir, processCallback, receiveAction))
-            {
-                yield return result;
-            }
+            return _executePipeline.BatchForeachAsync(imageList, saveDir, processCallback, receiveAction);
         }
         /// <summary>
         /// Muti channel batch inference foreach api cannot set the inference batchsize( default batchsize = 1 )
@@ -127,13 +124,10 @@ namespace RapidOCRSharpOnnx
         /// <param name="processCallback">callback interface(optional)</param>
         /// <param name="receiveAction">receive result action delegate(optional)</param>
         /// <returns>Result including detect result & classifier result(optional) recognize result & image path & text block  & performance time</returns>
-        public async IAsyncEnumerable<OcrBatchResult> BatchForeachAsync(string dir, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
+        public IAsyncEnumerable<OcrBatchResult> BatchForeachAsync(string dir, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
         {
             var list = ValidationUtils.ValidationImageBatch(dir);
-            await foreach (var result in BatchForeachAsync(list, saveDir, processCallback, receiveAction))
-            {
-                yield return result;
-            }
+            return BatchForeachAsync(list, saveDir, processCallback, receiveAction);
         }
         /// <summary>
         /// Muti channel batch inference can set the inference batchsize(ClassifierConfig.ClsBatchNum & RecognizerConfig.RecBatchNum), if the batch size is too large, out of memory will occur
@@ -172,13 +166,10 @@ namespace RapidOCRSharpOnnx
         /// <param name="processCallback">callback interface(optional)</param>
         /// <param name="receiveAction">receive result action delegate(optional)</param>
         /// <returns>Result including detect result & classifier result(optional) recognize result & image path & text block  & performance time</returns>
-        public async IAsyncEnumerable<OcrBatchResult> BatchParallelForeachAsync(string dir, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
+        public IAsyncEnumerable<OcrBatchResult> BatchParallelForeachAsync(string dir, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
         {
             var list = ValidationUtils.ValidationImageBatch(dir);
-            await foreach (var result in BatchParallelForeachAsync(list, saveDir, processCallback, receiveAction))
-            {
-                yield return result;
-            }
+            return BatchParallelForeachAsync(list, saveDir, processCallback, receiveAction);
         }
         /// <summary>
         /// Muti channel batch inference foreach api can set the inference batchsize(ClassifierConfig.ClsBatchNum & RecognizerConfig.RecBatchNum), if the batch size is too large, out of memory will occur
@@ -188,19 +179,41 @@ namespace RapidOCRSharpOnnx
         /// <param name="processCallback">callback interface(optional)</param>
         /// <param name="receiveAction">receive result action delegate(optional)</param>
         /// <returns>Result including detect result & classifier result(optional) recognize result & image path & text block  & performance time</returns>
-        public async IAsyncEnumerable<OcrBatchResult> BatchParallelForeachAsync(List<string> imageList, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
+        public IAsyncEnumerable<OcrBatchResult> BatchParallelForeachAsync(List<string> imageList, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
         {
             var list = UtilsHelper.GetFilesFromListPaths(imageList);
             ValidationUtils.ValidationImageListCount(list);
-            await foreach (var result in _executePipeline.BatchParallelForeachAsync(imageList, saveDir, processCallback, receiveAction))
+            return _executePipeline.BatchParallelForeachAsync(imageList, saveDir, processCallback, receiveAction);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
             {
-                yield return result;
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                _executePipeline.Dispose();
+                disposedValue = true;
             }
         }
 
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        // ~RapidOCRSharp()
+        // {
+        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        //     Dispose(disposing: false);
+        // }
+
         public void Dispose()
         {
-            _executePipeline.Dispose();
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }
