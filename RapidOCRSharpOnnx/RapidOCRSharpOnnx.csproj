@@ -4,7 +4,7 @@
 		<TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;osx-x64</RuntimeIdentifiers>
+		<RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Title>RapidOCRSharpOnnx</Title>
@@ -16,7 +16,7 @@
 		<Version>1.0.5</Version>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 		<Copyright>Copyright © meloht</Copyright>
-		<PackageReleaseNotes>RapidOCRSharpOnnx 1.0.5 build win-x64;win-arm64;linux-x64;linux-arm64;osx-x64</PackageReleaseNotes>
+		<PackageReleaseNotes>RapidOCRSharpOnnx 1.0.5 build win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64</PackageReleaseNotes>
 		<Description>a high performance, cross-platform PaddleOCR C# inference library base on OpenCV and ONNX Runtime</Description>
 		<PackageIcon>RapidOCRSharpOnnx_256.png</PackageIcon>
 	</PropertyGroup>

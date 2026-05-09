@@ -41,7 +41,7 @@ Referring to the [RapidOCR](https://github.com/RapidAI/RapidOCR) project, it is 
 </div>
 
 # Build Package 
-win-x64;win-arm64;linux-x64;linux-arm64;osx-x64
+win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64
 
 # Usage
 ### 1. Export model to ONNX format:
