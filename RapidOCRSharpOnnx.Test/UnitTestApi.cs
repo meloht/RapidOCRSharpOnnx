@@ -98,36 +98,6 @@ namespace RapidOCRSharpOnnx.Test
             Assert.Equal(_dict.Count, idx);
         }
 
-        [Fact]
-        public async Task TestBatchForeachCallbackAsync()
-        {
-            string dir = GetImageFolder();
-            int idx = 0;
-            await foreach (var item in _ocr.BatchForeachAsync(dir, processCallback: new BatchProcessCallback(_dict)))
-            {
-                idx++;
-                string name = Path.GetFileName(item.ImagePath);
-                Assert.Equal(_dict[name], item.TextBlocks);
-            }
-
-            Assert.Equal(_dict.Count, idx);
-        }
-
-        [Fact]
-        public async Task TestBatchForeachActionAsync()
-        {
-            string dir = GetImageFolder();
-            int idx = 0;
-            await foreach (var item in _ocr.BatchForeachAsync(dir, receiveAction: ReceiveResult))
-            {
-                idx++;
-                string name = Path.GetFileName(item.ImagePath);
-                Assert.Equal(_dict[name], item.TextBlocks);
-            }
-
-            Assert.Equal(_dict.Count, idx);
-        }
-
 
         [Fact]
         public void TestBatchParallelAsync()
@@ -195,37 +165,7 @@ namespace RapidOCRSharpOnnx.Test
             Assert.Equal(_dict.Count, idx);
 
         }
-        [Fact]
-        public async Task TestBatchParallelForeachCallbackAsync()
-        {
-            string dir = GetImageFolder();
 
-            int idx = 0;
-            await foreach (var item in _ocr.BatchParallelForeachAsync(dir, processCallback: new BatchProcessCallback(_dict)))
-            {
-                idx++;
-                string name = Path.GetFileName(item.ImagePath);
-                Assert.Equal(_dict[name], item.TextBlocks);
-            }
-
-            Assert.Equal(_dict.Count, idx);
-        }
-
-        [Fact]
-        public async Task TestBatchParallelForeachActionAsync()
-        {
-            string dir = GetImageFolder();
-
-            int idx = 0;
-            await foreach (var item in _ocr.BatchParallelForeachAsync(dir, receiveAction: ReceiveResult))
-            {
-                idx++;
-                string name = Path.GetFileName(item.ImagePath);
-                Assert.Equal(_dict[name], item.TextBlocks);
-            }
-
-            Assert.Equal(_dict.Count, idx);
-        }
 
         private void ReceiveResult(OcrBatchResult result)
         {

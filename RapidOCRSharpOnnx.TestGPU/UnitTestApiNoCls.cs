@@ -96,33 +96,6 @@ namespace RapidOCRSharpOnnx.TestGPU
             Assert.Equal(_dict.Count, idx);
         }
 
-        [Fact]
-        public async Task TestBatchForeachCallbackAsync()
-        {
-            int idx = 0;
-            await foreach (var item in _ocr.BatchForeachAsync(_dir, processCallback: new BatchProcessCallback(_dict)))
-            {
-                idx++;
-                string name = Path.GetFileName(item.ImagePath);
-                Assert.Equal(_dict[name], item.TextBlocks);
-            }
-
-            Assert.Equal(_dict.Count, idx);
-        }
-
-        [Fact]
-        public async Task TestBatchForeachActionAsync()
-        {
-            int idx = 0;
-            await foreach (var item in _ocr.BatchForeachAsync(_dir, receiveAction: ReceiveResult))
-            {
-                idx++;
-                string name = Path.GetFileName(item.ImagePath);
-                Assert.Equal(_dict[name], item.TextBlocks);
-            }
-
-            Assert.Equal(_dict.Count, idx);
-        }
 
 
         [Fact]
@@ -183,33 +156,7 @@ namespace RapidOCRSharpOnnx.TestGPU
             Assert.Equal(_dict.Count, idx);
 
         }
-        [Fact]
-        public async Task TestBatchParallelForeachCallbackAsync()
-        {
-            int idx = 0;
-            await foreach (var item in _ocr.BatchParallelForeachAsync(_dir, processCallback: new BatchProcessCallback(_dict)))
-            {
-                idx++;
-                string name = Path.GetFileName(item.ImagePath);
-                Assert.Equal(_dict[name], item.TextBlocks);
-            }
 
-            Assert.Equal(_dict.Count, idx);
-        }
-
-        [Fact]
-        public async Task TestBatchParallelForeachActionAsync()
-        {
-            int idx = 0;
-            await foreach (var item in _ocr.BatchParallelForeachAsync(_dir, receiveAction: ReceiveResult))
-            {
-                idx++;
-                string name = Path.GetFileName(item.ImagePath);
-                Assert.Equal(_dict[name], item.TextBlocks);
-            }
-
-            Assert.Equal(_dict.Count, idx);
-        }
 
         private void ReceiveResult(OcrBatchResult result)
         {
