@@ -40,8 +40,7 @@ Referring to the [RapidOCR](https://github.com/RapidAI/RapidOCR) project, it is 
 
 </div>
 
-# Build Package 
-AnyCPU RapidOCRSharpOnnx C# library. A package of separate native bindings for your OS is required.
+
 
 # Usage
 ### 1. Export model to ONNX format:
