@@ -12,10 +12,10 @@
 		<PackageTags>ocr;paddle-ocr;paddleocr;csharp;onnx;onnx-runtime;cross-platform;cpu;cuda;gpu;tensorrt;coreml;directml;openvino;computer-vision;text-recognition;text-detection</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Authors>meloht</Authors>
-		<Version>1.0.8</Version>
+		<Version>1.0.9</Version>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 		<Copyright>Copyright © meloht</Copyright>
-		<PackageReleaseNotes>RapidOCRSharpOnnx 1.0.8 update api custom font to draw result image </PackageReleaseNotes>
+		<PackageReleaseNotes>RapidOCRSharpOnnx 1.0.9 fonts pack to nuget </PackageReleaseNotes>
 		<Description>a high performance, cross-platform PaddleOCR C# inference library base on OpenCV and ONNX Runtime</Description>
 		<PackageIcon>RapidOCRSharpOnnx_256.png</PackageIcon>
 	</PropertyGroup>
@@ -29,6 +29,7 @@
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
 		</None>
+		 <EmbeddedResource Include="Assets\Fonts\*.ttf" />
 	</ItemGroup>
 
 	<ItemGroup>

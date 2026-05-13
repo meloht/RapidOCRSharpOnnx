@@ -15,7 +15,7 @@ namespace RapidOCRSharpOnnx.Utils
     public static class UtilsHelper
     {
 
-        public static string GetFontPath(LangRec langRec)
+        internal static string GetFontName(LangRec langRec)
         {
             string fontFileName = langRec switch
             {
@@ -38,7 +38,7 @@ namespace RapidOCRSharpOnnx.Utils
                 _ => throw new ArgumentOutOfRangeException(nameof(langRec), $"Unsupported language: {langRec}")
             };
 
-            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "fonts", fontFileName);
+            return $"RapidOCRSharpOnnx.Assets.Fonts.{fontFileName}";
         }
 
         public static string BuildTextBlocks(RecResult[] recResults, float textScore)

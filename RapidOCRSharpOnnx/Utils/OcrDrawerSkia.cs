@@ -9,6 +9,7 @@ using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
@@ -27,12 +28,21 @@ namespace RapidOCRSharpOnnx.Utils
         public OcrDrawerSkia(OcrConfig ocrConfig)
         {
             _ocrConfig = ocrConfig;
-            string fontPath = UtilsHelper.GetFontPath(ocrConfig.LangRec);
+          
             if (!string.IsNullOrEmpty(ocrConfig.FontPath))
             {
-                fontPath = ocrConfig.FontPath;
+                string fontPath = ocrConfig.FontPath;
+                _typeface = SKTypeface.FromFile(fontPath);
             }
-            _typeface = SKTypeface.FromFile(fontPath);
+            else
+            {
+                string fontName = UtilsHelper.GetFontName(ocrConfig.LangRec);
+                using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(fontName);
+                using var ms = new MemoryStream();
+                stream.CopyTo(ms);
+                _typeface = SKTypeface.FromData(SKData.CreateCopy(ms.ToArray()));
+
+            }
             _textCalRecBox = new TextCalRecBox(ocrConfig);
         }
 
