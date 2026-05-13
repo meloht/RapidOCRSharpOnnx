@@ -16,6 +16,10 @@ namespace RapidOCRSharpOnnx.Configurations
         public bool ReturnWordBox { get; set; } = false;
         public bool ReturnSingleCharBox { get; set; } = false;
         private int _batchPoolSize = 30;
+
+        public string FontPath { get; set; }
+        public LangRec LangRec { get; set; }
+
         public int BatchPoolSize
         {
             get { return _batchPoolSize; }
@@ -35,6 +39,15 @@ namespace RapidOCRSharpOnnx.Configurations
 
         public RecognizerConfig RecognizerConfig { get; set; }
 
+        /// <summary>
+        /// OCR config
+        /// </summary>
+        /// <param name="detectorModelPath">text detection model path</param>
+        /// <param name="recognizerModelPath">text recognition model path</param>
+        /// <param name="langFont">draw result image font</param>
+        /// <param name="ocrVersion">PP-OCR version</param>
+        /// <param name="classifierModelPath">text line orientation classification model path</param>
+        /// <exception cref="ArgumentException">Detector ModelPath is null or empty. or Recognizer ModelPath is null or empty.</exception>
         public OcrConfig(string detectorModelPath, string recognizerModelPath, LangRec langFont, OCRVersion ocrVersion, string classifierModelPath = null)
         {
             if (string.IsNullOrWhiteSpace(detectorModelPath))
@@ -45,9 +58,9 @@ namespace RapidOCRSharpOnnx.Configurations
             {
                 throw new ArgumentException("Recognizer ModelPath is null or empty.");
             }
-
-            DetectorConfig = new DetectorConfig { ModelPath = detectorModelPath, OCRVersion = ocrVersion};
-            RecognizerConfig = new RecognizerConfig { ModelPath = recognizerModelPath, LangRec = langFont };
+            LangRec = langFont;
+            DetectorConfig = new DetectorConfig { ModelPath = detectorModelPath, OCRVersion = ocrVersion };
+            RecognizerConfig = new RecognizerConfig { ModelPath = recognizerModelPath };
 
             if (!string.IsNullOrWhiteSpace(classifierModelPath))
             {
@@ -55,10 +68,34 @@ namespace RapidOCRSharpOnnx.Configurations
             }
 
         }
-
+        /// <summary>
+        /// OCR config
+        /// </summary>
+        /// <param name="detectorModelPath">text detection model path</param>
+        /// <param name="recognizerModelPath">text recognition model path</param>
+        /// <param name="langRec">draw result image font</param>
+        /// <param name="ocrVersion">PP-OCR version</param>
         public OcrConfig(string detectorModelPath, string recognizerModelPath, LangRec langRec, OCRVersion ocrVersion) : this(detectorModelPath, recognizerModelPath, langRec, ocrVersion, null)
         {
 
+        }
+        /// <summary>
+        /// OCR config
+        /// </summary>
+        /// <param name="detectorModelPath">text detection model path</param>
+        /// <param name="recognizerModelPath">text recognition model path</param>
+        /// <param name="fontPath">draw result image font file path</param>
+        /// <param name="ocrVersion">PP-OCR version</param>
+        /// <param name="classifierModelPath">text line orientation classification model path</param>
+        /// <exception cref="ArgumentException">fontPath is not exist</exception>
+        public OcrConfig(string detectorModelPath, string recognizerModelPath, string fontPath, OCRVersion ocrVersion, string classifierModelPath = null)
+            : this(detectorModelPath, recognizerModelPath, LangRec.CH, ocrVersion, classifierModelPath)
+        {
+            if (!File.Exists(fontPath))
+            {
+                throw new ArgumentException($"{fontPath} fontPath is not exist");
+            }
+            FontPath = fontPath;
         }
 
 

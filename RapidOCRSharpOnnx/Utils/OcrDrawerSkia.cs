@@ -27,7 +27,11 @@ namespace RapidOCRSharpOnnx.Utils
         public OcrDrawerSkia(OcrConfig ocrConfig)
         {
             _ocrConfig = ocrConfig;
-            string fontPath = UtilsHelper.GetFontPath(ocrConfig.RecognizerConfig.LangRec);
+            string fontPath = UtilsHelper.GetFontPath(ocrConfig.LangRec);
+            if (!string.IsNullOrEmpty(ocrConfig.FontPath))
+            {
+                fontPath = ocrConfig.FontPath;
+            }
             _typeface = SKTypeface.FromFile(fontPath);
             _textCalRecBox = new TextCalRecBox(ocrConfig);
         }
