@@ -147,6 +147,24 @@ await foreach (var item in resPaths)
 }
 
 ```
+#### Custom font to draw result image
+```csharp
+private static void TestImage()
+{
+     string imgPath = @"E:\Hp\ai-image\ADFtools\headerText.png";
+     string detectPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-OCRv5_det_mobile.onnx";
+     string recogPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-OCRv5_rec_mobile.onnx";
+     string clsPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-LCNet_x0_25_textline_ori_cls_mobile.onnx";
+
+     string font = @"C:\Windows\Fonts\msyh.ttc";
+     using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderDirectML(new OcrConfig(detectPath, recogPath, font, OCRVersion.PPOCRV5, clsPath), _deviceId));
+
+     string savePath = $"res_{Path.GetFileName(imgPath)}";
+     var result = ocr.RecognizeText(imgPath, savePath);
+     Console.WriteLine($"result: {result.ToString()}");
+}
+
+```
 
 # Performance Test
 
