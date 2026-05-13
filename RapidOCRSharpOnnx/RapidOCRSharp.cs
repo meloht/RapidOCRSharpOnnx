@@ -32,7 +32,7 @@ namespace RapidOCRSharpOnnx
         /// Single-threaded inference can set the inference batchsize(ClassifierConfig.ClsBatchNum & RecognizerConfig.RecBatchNum), if the batch size is too large, out of memory will occur
         /// </summary>
         /// <param name="imagePath">image full path</param>
-        /// <param name="savePath">the save path for draw result image</param>
+        /// <param name="savePath">the save path for draw result image(optional)</param>
         /// <returns>Result including detect result & classifier result(optional) recognize Result  & performance time</returns>
         public OcrResult RecognizeText(string imagePath, string savePath = null)
         {
