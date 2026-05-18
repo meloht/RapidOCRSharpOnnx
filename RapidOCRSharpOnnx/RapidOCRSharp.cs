@@ -112,7 +112,7 @@ namespace RapidOCRSharpOnnx
             var list = UtilsHelper.GetFilesFromListPaths(imageList);
             ValidationUtils.ValidationImageListCount(list);
             ValidationUtils.ValidationBatchPoolSize(Configuration.BatchPoolSize);
-            return _executePipeline.BatchForeachAsync(imageList, saveDir, null, null);
+            return _executePipeline.BatchForeachAsync(imageList, saveDir);
         }
         /// <summary>
         /// Muti channel batch inference foreach api cannot set the inference batchsize( default batchsize = 1 )
@@ -175,7 +175,7 @@ namespace RapidOCRSharpOnnx
         {
             var list = UtilsHelper.GetFilesFromListPaths(imageList);
             ValidationUtils.ValidationImageListCount(list);
-            return _executePipeline.BatchParallelForeachAsync(imageList, saveDir, null, null);
+            return _executePipeline.BatchParallelForeachAsync(imageList, saveDir);
         }
 
         protected virtual void Dispose(bool disposing)

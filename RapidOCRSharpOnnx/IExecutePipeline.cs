@@ -13,11 +13,11 @@ namespace RapidOCRSharpOnnx
 
         OcrResult RecognizeTextSeq(Mat image, string savePath = null);
 
-        IAsyncEnumerable<OcrBatchResult> BatchForeachAsync(List<string> imageList, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null);
+        IAsyncEnumerable<OcrBatchResult> BatchForeachAsync(List<string> imageList, string saveDir = null);
         OcrBatchResult[] BatchAsync(List<string> imageList, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null);
 
         OcrBatchResult[] BatchParallelAsync(List<string> imageList, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null);
 
-        IAsyncEnumerable<OcrBatchResult> BatchParallelForeachAsync(List<string> imageList, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null);
+        IAsyncEnumerable<OcrBatchResult> BatchParallelForeachAsync(List<string> imageList, string saveDir = null);
     }
 }
