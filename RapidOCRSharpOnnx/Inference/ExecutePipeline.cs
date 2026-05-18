@@ -85,7 +85,7 @@ namespace RapidOCRSharpOnnx.Inference
             return batchResults;
         }
 
-        public async IAsyncEnumerable<OcrBatchResult> BatchForeachAsync(List<string> imageList, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
+        public async IAsyncEnumerable<OcrBatchResult> BatchForeachAsync(List<string> imageList, string saveDir = null)
         {
             OcrBatchResult[] batchResults = new OcrBatchResult[imageList.Count];
             for (int i = 0; i < imageList.Count; i++)
@@ -114,7 +114,6 @@ namespace RapidOCRSharpOnnx.Inference
             await foreach (OcrBatchResult item in channelRecPre.Reader.ReadAllAsync())
             {
                 await _ocrRecognizer.BatchRecAsync(item);
-                _ = InferCompleteAsync(item, processCallback, receiveAction);
                 SaveImageWithTextBlocks(item, saveDir);
                 item.DetResult?.ImgCropList?.Dispose();
                 yield return item;
@@ -313,7 +312,7 @@ namespace RapidOCRSharpOnnx.Inference
         }
 
 
-        public async IAsyncEnumerable<OcrBatchResult> BatchParallelForeachAsync(List<string> imageList, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
+        public async IAsyncEnumerable<OcrBatchResult> BatchParallelForeachAsync(List<string> imageList, string saveDir = null)
         {
             OcrBatchResult[] batchResults = new OcrBatchResult[imageList.Count];
             for (int i = 0; i < imageList.Count; i++)
@@ -342,7 +341,6 @@ namespace RapidOCRSharpOnnx.Inference
             await foreach (OcrBatchResult item in channelRecPre.Reader.ReadAllAsync())
             {
                 await _ocrRecognizer.BatchParallelRecAsync(item);
-                _ = InferCompleteAsync(item, processCallback, receiveAction);
                 SaveImageWithTextBlocks(item, saveDir);
                 item.DetResult?.ImgCropList?.Dispose();
                 yield return item;
