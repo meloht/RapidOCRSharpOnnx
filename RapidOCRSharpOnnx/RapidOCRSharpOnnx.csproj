@@ -30,6 +30,7 @@
 			<PackagePath>\</PackagePath>
 		</None>
 		 <EmbeddedResource Include="Assets\Fonts\*.ttf" />
+		 <EmbeddedResource Include="Assets\Fonts\*.ttc" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -55,7 +56,7 @@
 		<None Update="Assets\Fonts\el.ttf">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="Assets\Fonts\FZYTK.TTF">
+		<None Update="Assets\Fonts\FZYTK.ttf">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="Assets\Fonts\japan.ttc">
