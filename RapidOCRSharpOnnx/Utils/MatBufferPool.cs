@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RapidOCRSharpOnnx.Utils
 {
-    public class MatBufferPool : IDisposable
+    public sealed class MatBufferPool : IDisposable
     {
         private int _inputSizeInBytes;
         private long[] _inputShape;
