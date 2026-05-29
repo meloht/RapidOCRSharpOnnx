@@ -13,6 +13,7 @@ namespace RapidOCRSharpOnnx.ConsoleGPU
             Console.WriteLine("Hello, World!");
 
             TestParallelBatch();
+            Console.ReadKey();
         }
 
 
