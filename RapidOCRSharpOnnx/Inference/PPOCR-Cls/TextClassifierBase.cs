@@ -32,7 +32,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
         protected Mat _resizedImg;
         protected readonly int[] _clsImageShape;
         private readonly object _detectLock = new();
-        protected MatBufferPool _matPool;
+        protected MatBufferPoolArr _matPool;
         private int _batchPoolSize = 0;
         private long[] _inputShape;
         private int _inputShapeSize;
@@ -78,7 +78,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
                 {
                     if (_matPool == null)
                     {
-                        _matPool = new MatBufferPool(batchPoolSize, _inputSizeInBytes, _inputShape);
+                        _matPool = new MatBufferPoolArr(batchPoolSize, _inputSizeInBytes, _inputShape);
                     }
                 }
             }
