@@ -8,7 +8,7 @@ namespace RapidOCRSharpOnnx.ConsoleDirectML
 {
     internal class Program
     {
-        const int _deviceId = 1;
+        const int _deviceId = 2;
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
@@ -31,12 +31,12 @@ namespace RapidOCRSharpOnnx.ConsoleDirectML
             string saveDir = @"C:\code\model\OCRTestImagesResults";
 
             using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderDirectML(new OcrConfig(detectPath, recogPath, LangRec.CH, OCRVersion.PPOCRV5, clsPath), _deviceId));
-            var list = Directory.GetFiles(@"C:\code\model\OCRTestImages");
+            var list = Directory.GetFiles(@"C:\FtpFiles\OCRTestImages");
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            var resPath = ocr.BatchParallelAsync(list.ToList(), saveDir, receiveAction: ReceiveResult);
+            var resPath = ocr.BatchParallelAsync(list.ToList(), null, receiveAction: ReceiveResult);
             sw.Stop();
-            Console.WriteLine($"BatchAsync Time: {sw.ElapsedMilliseconds} ms");
+            Console.WriteLine($"BatchAsync Time: {sw.Elapsed} ms");
 
 
             Console.WriteLine("end");
