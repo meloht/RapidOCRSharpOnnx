@@ -20,7 +20,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
 
         void PreprocessBatchParallelAsync(DisposableList<ImageIndex> imgCropList, int inputShapeSize, ChannelWriter<ClsPreResultBatchParallel> writer);
 
-        Task PreprocessBatchAsync(DisposableList<ImageIndex> ImgCropList, MatBufferPool matBuffer, DeviceType deviceType, ChannelWriter<ClsPreResultBatch> writer);
+        Task PreprocessBatchAsync(DisposableList<ImageIndex> ImgCropList, MatBufferPoolArr matBuffer, DeviceType deviceType, ChannelWriter<ClsPreResultBatch> writer);
 
         int[] GetClsImageShape();
 

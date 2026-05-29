@@ -36,6 +36,7 @@ namespace RapidOCRSharpOnnx
         /// <returns>Result including detect result & classifier result(optional) recognize Result  & performance time</returns>
         public OcrResult RecognizeText(string imagePath, string savePath = null)
         {
+            ThrowIfDisposed();
             ValidationUtils.ValidateImage(imagePath);
             using var img = Cv2.ImRead(imagePath);
             return _executePipeline.RecognizeText(img, savePath);
@@ -48,6 +49,7 @@ namespace RapidOCRSharpOnnx
         /// <returns>Result including detect result & classifier result(optional) recognize Result  & performance time</returns>
         public OcrResult RecognizeText(Mat image, string savePath = null)
         {
+            ThrowIfDisposed();
             return _executePipeline.RecognizeText(image, savePath);
         }
         /// <summary>
@@ -58,6 +60,7 @@ namespace RapidOCRSharpOnnx
         /// <returns>Result including detect result & classifier result(optional) recognize Result  & performance time</returns>
         public OcrResult RecognizeTextSeq(string imagePath, string savePath = null)
         {
+            ThrowIfDisposed();
             ValidationUtils.ValidateImage(imagePath);
             using var img = Cv2.ImRead(imagePath);
             return _executePipeline.RecognizeTextSeq(img, savePath);
@@ -71,6 +74,7 @@ namespace RapidOCRSharpOnnx
         /// <returns>Result including detect result & classifier result(optional) recognize Result  & performance time</returns>
         public OcrResult RecognizeTextSeq(Mat image, string savePath = null)
         {
+            ThrowIfDisposed();
             return _executePipeline.RecognizeTextSeq(image, savePath);
         }
         /// <summary>
@@ -83,6 +87,7 @@ namespace RapidOCRSharpOnnx
         /// <returns>Result including detect result & classifier result(optional) recognize result & image path & text block  & performance time</returns>
         public OcrBatchResult[] BatchAsync(string dir, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
         {
+            ThrowIfDisposed();
             var list = ValidationUtils.ValidationImageBatch(dir);
             return BatchAsync(list, saveDir, processCallback, receiveAction);
         }
@@ -96,6 +101,7 @@ namespace RapidOCRSharpOnnx
         /// <returns>Result including detect result & classifier result(optional) recognize result & image path & text block  & performance time</returns>
         public OcrBatchResult[] BatchAsync(List<string> imageList, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
         {
+            ThrowIfDisposed();
             var list = UtilsHelper.GetFilesFromListPaths(imageList);
             ValidationUtils.ValidationImageListCount(list);
             ValidationUtils.ValidationBatchPoolSize(Configuration.BatchPoolSize);
@@ -109,6 +115,7 @@ namespace RapidOCRSharpOnnx
         /// <returns>Result including detect result & classifier result(optional) recognize result & image path & text block  & performance time</returns>
         public IAsyncEnumerable<OcrBatchResult> BatchForeachAsync(List<string> imageList, string saveDir = null)
         {
+            ThrowIfDisposed();
             var list = UtilsHelper.GetFilesFromListPaths(imageList);
             ValidationUtils.ValidationImageListCount(list);
             ValidationUtils.ValidationBatchPoolSize(Configuration.BatchPoolSize);
@@ -122,6 +129,7 @@ namespace RapidOCRSharpOnnx
         /// <returns>Result including detect result & classifier result(optional) recognize result & image path & text block  & performance time</returns>
         public IAsyncEnumerable<OcrBatchResult> BatchForeachAsync(string dir, string saveDir = null)
         {
+            ThrowIfDisposed();
             var list = ValidationUtils.ValidationImageBatch(dir);
             return BatchForeachAsync(list, saveDir);
         }
@@ -135,6 +143,7 @@ namespace RapidOCRSharpOnnx
         /// <returns>Result including detect result & classifier result(optional) recognize result & image path & text block  & performance time</returns>
         public OcrBatchResult[] BatchParallelAsync(string dir, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
         {
+            ThrowIfDisposed();
             var list = ValidationUtils.ValidationImageBatch(dir);
             return BatchParallelAsync(list, saveDir, processCallback, receiveAction);
         }
@@ -149,6 +158,7 @@ namespace RapidOCRSharpOnnx
         /// <returns>Result including detect result & classifier result(optional) recognize result & image path & text block  & performance time</returns>
         public OcrBatchResult[] BatchParallelAsync(List<string> imageList, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
         {
+            ThrowIfDisposed();
             var list = UtilsHelper.GetFilesFromListPaths(imageList);
             ValidationUtils.ValidationImageListCount(list);
             return _executePipeline.BatchParallelAsync(imageList, saveDir, processCallback, receiveAction);
@@ -162,6 +172,7 @@ namespace RapidOCRSharpOnnx
         /// <returns>Result including detect result & classifier result(optional) recognize result & image path & text block  & performance time</returns>
         public IAsyncEnumerable<OcrBatchResult> BatchParallelForeachAsync(string dir, string saveDir = null)
         {
+            ThrowIfDisposed();
             var list = ValidationUtils.ValidationImageBatch(dir);
             return BatchParallelForeachAsync(list, saveDir);
         }
@@ -173,11 +184,15 @@ namespace RapidOCRSharpOnnx
         /// <returns>Result including detect result & classifier result(optional) recognize result & image path & text block  & performance time</returns>
         public IAsyncEnumerable<OcrBatchResult> BatchParallelForeachAsync(List<string> imageList, string saveDir = null)
         {
+            ThrowIfDisposed();
             var list = UtilsHelper.GetFilesFromListPaths(imageList);
             ValidationUtils.ValidationImageListCount(list);
             return _executePipeline.BatchParallelForeachAsync(imageList, saveDir);
         }
-
+        private void ThrowIfDisposed()
+        {
+            ObjectDisposedException.ThrowIf(disposedValue, this);
+        }
         protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)

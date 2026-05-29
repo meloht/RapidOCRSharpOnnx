@@ -17,7 +17,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
 {
-    public class ClsPreprocess : PreprocessBatchCore<ImageIndex, MatBufferPool, ClsPreResultBatch>, IClsPreprocess
+    public class ClsPreprocess : PreprocessBatchCore<ImageIndex, MatBufferPoolArr, ClsPreResultBatch>, IClsPreprocess
     {
         private static readonly int[] ClsImageShapev4 = [3, 48, 192];
         private static readonly int[] ClsImageShapev5 = [3, 80, 160];
@@ -136,11 +136,11 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
 
 
 
-        public async Task PreprocessBatchAsync(DisposableList<ImageIndex> imgCropList, MatBufferPool matBuffer, DeviceType deviceType, ChannelWriter<ClsPreResultBatch> writer)
+        public async Task PreprocessBatchAsync(DisposableList<ImageIndex> imgCropList, MatBufferPoolArr matBuffer, DeviceType deviceType, ChannelWriter<ClsPreResultBatch> writer)
         {
             await PreprocessBatchBaseAsync(imgCropList, deviceType, matBuffer, writer, PreprocessChannel);
         }
-        protected ClsPreResultBatch PreprocessChannel(ImageIndex batchImage, MatBufferPool matBuffer)
+        protected ClsPreResultBatch PreprocessChannel(ImageIndex batchImage, MatBufferPoolArr matBuffer)
         {
             Mat img = batchImage.Image;
             var data = matBuffer.Rent();

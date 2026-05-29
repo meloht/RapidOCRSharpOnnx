@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RapidOCRSharpOnnx.Utils
 {
-    public sealed class ObjectPool<T> : IDisposable where T : IDisposable
+    public sealed class ObjectPoolArr<T> : IDisposable where T : class, IDisposable
     {
         /// <summary>
         /// 创建对象的方法
@@ -24,16 +23,25 @@ namespace RapidOCRSharpOnnx.Utils
         /// <summary>
         /// 使用 ConcurrentBag 保证高性能线程安全
         /// </summary>
-        private readonly ConcurrentBag<T> _items = new();
+        private readonly T[] _items;
 
 
         private bool _disposed;
+        private readonly object _locker = new object();
+        private int _currentIndex = 0;
 
-        public ObjectPool(Func<T> factory, int maxSize = 30, Action<T>? resetAction = null)
+        public ObjectPoolArr(Func<T> factory, int maxSize = 30, Action<T>? resetAction = null)
         {
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _maxSize = maxSize > 0 ? maxSize : 30;
             _resetAction = resetAction;
+
+            _items = new T[_maxSize];
+            for (int i = 0; i < _maxSize; i++)
+            {
+                _items[i] = _factory();
+            }
+            _currentIndex = _items.Length - 1;
         }
 
         private void ThrowIfDisposed()
@@ -58,21 +66,39 @@ namespace RapidOCRSharpOnnx.Utils
         public T Rent()
         {
             ThrowIfDisposed();
-            if (_items.TryTake(out var item))
+            lock (_locker)
             {
-                return item;
+                if (_items[_currentIndex] != null)
+                {
+                    var res = _items[_currentIndex];
+                    _items[_currentIndex] = null;
+                    _currentIndex--;
+                    if (_currentIndex < 0)
+                    {
+                        _currentIndex = 0;
+                    }
+
+                    return res;
+                }
+                else
+                {
+                    // 池空了，临时创建
+                    return _factory();
+                }
+
             }
 
-            return _factory();
+
         }
         /// <summary>
         /// 清空对象池
         /// </summary>
         private void Clear()
         {
-            while (_items.TryTake(out var item))
+            for (int i = 0; i < _items.Length; i++)
             {
-                item?.Dispose();
+                _items[i]?.Dispose();
+                _items[i] = null;
             }
         }
         /// <summary>
@@ -90,13 +116,27 @@ namespace RapidOCRSharpOnnx.Utils
             }
             _resetAction?.Invoke(item);
             // 超过最大容量则直接销毁
-            if (_items.Count < _maxSize)
+            lock (_locker)
             {
-                _items.Add(item);
-            }
-            else
-            {
-                item?.Dispose();
+
+                if (_items[_currentIndex] != null)
+                {
+                    if (_currentIndex != _items.Length - 1)
+                    {
+                        _currentIndex++;
+                        _items[_currentIndex] = item;
+
+                    }
+                    else
+                    {
+                        item.Dispose();
+                    }
+                }
+                else
+                {
+                    _items[_currentIndex] = item;
+                }
+
             }
         }
     }

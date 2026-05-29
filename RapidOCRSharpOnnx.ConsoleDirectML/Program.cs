@@ -1,38 +1,39 @@
-﻿using RapidOCRSharpOnnx.Configurations;
+﻿using Microsoft.VisualBasic;
+using RapidOCRSharpOnnx.Configurations;
 using RapidOCRSharpOnnx.Providers;
 using RapidOCRSharpOnnx.Utils;
 using System.Diagnostics;
 
-namespace RapidOCRSharpOnnx.ConsoleGPU
+namespace RapidOCRSharpOnnx.ConsoleDirectML
 {
     internal class Program
     {
-        const int _deviceId = 0;
+        const int _deviceId = 2;
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
-
             TestParallelBatch();
+            //TestListSeq();
             Console.ReadKey();
         }
-
 
         private static void TestListSeq()
         {
             string detectPath = @"C:\deeplearning\gitCode\meloht\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-OCRv5_det_mobile.onnx";
             string recogPath = @"C:\deeplearning\gitCode\meloht\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-OCRv5_rec_mobile.onnx";
             string clsPath = @"C:\deeplearning\gitCode\meloht\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-LCNet_x0_25_textline_ori_cls_mobile.onnx";
-            //string saveDir = @"C:\code\model\OCRTestImagesResults";
-            string saveDir = null;
-            using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderCUDA(new OcrConfig(detectPath, recogPath, LangRec.CH, OCRVersion.PPOCRV5, clsPath), _deviceId));
-            var list = Directory.GetFiles(@"C:\code\model\OCRTestImages");
+            string saveDir = @"C:\code\model\OCRTestImagesResults";
+
+            // string saveDir = null;
+            using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderDirectML(new OcrConfig(detectPath, recogPath, LangRec.CH, OCRVersion.PPOCRV5, clsPath), _deviceId));
+            var list = Directory.GetFiles(@"C:\FtpFiles\OCRTestImages");
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
             foreach (var item in list)
             {
-               // string resPath = Path.Combine(saveDir, $"res_{Path.GetFileName(item)}");
-                var res = ocr.RecognizeText(item, null);
+                // string resPath = Path.Combine(saveDir, $"res_{Path.GetFileName(item)}");
+                var res = ocr.RecognizeText(item);
                 Console.WriteLine(res);
             }
 
@@ -55,13 +56,13 @@ namespace RapidOCRSharpOnnx.ConsoleGPU
             string clsPath = @"C:\deeplearning\gitCode\meloht\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-LCNet_x0_25_textline_ori_cls_mobile.onnx";
             string saveDir = @"C:\code\model\OCRTestImagesResults";
 
-            using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderCUDA(new OcrConfig(detectPath, recogPath, LangRec.CH, OCRVersion.PPOCRV5, clsPath), _deviceId));
-            var list = Directory.GetFiles(@"C:\code\model\OCRTestImages");
+            using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderDirectML(new OcrConfig(detectPath, recogPath, LangRec.CH, OCRVersion.PPOCRV5, clsPath), _deviceId));
+            var list = Directory.GetFiles(@"C:\FtpFiles\OCRTestImages");
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            var resPath = ocr.BatchParallelAsync(list.ToList(), saveDir, receiveAction: ReceiveResult);
+            var resPath = ocr.BatchParallelAsync(list.ToList(), null, receiveAction: ReceiveResult);
             sw.Stop();
-            Console.WriteLine($"BatchAsync Time: {sw.ElapsedMilliseconds} ms");
+            Console.WriteLine($"BatchAsync Time: {sw.Elapsed} ms");
 
 
             Console.WriteLine("end");
