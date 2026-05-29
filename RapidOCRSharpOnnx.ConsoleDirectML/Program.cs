@@ -8,7 +8,7 @@ namespace RapidOCRSharpOnnx.ConsoleDirectML
 {
     internal class Program
     {
-        const int _deviceId = 0;
+        const int _deviceId = 1;
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
