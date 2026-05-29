@@ -6,9 +6,11 @@
   <Project Path="RapidOCRSharpOnnx.Console/RapidOCRSharpOnnx.ConsoleApp.csproj">
     <Platform Project="x64" />
   </Project>
+  <Project Path="RapidOCRSharpOnnx.ConsoleDirectML/RapidOCRSharpOnnx.ConsoleDirectML.csproj" Id="19c6f866-d6fc-48c5-be70-c4f2b7ef3ead" />
   <Project Path="RapidOCRSharpOnnx.ConsoleGPU/RapidOCRSharpOnnx.ConsoleGPU.csproj" Id="105e285e-94c5-437f-80f8-29174e6e492e">
     <Platform Project="x64" />
   </Project>
+  <Project Path="RapidOCRSharpOnnx.ConsoleOpenVINO/RapidOCRSharpOnnx.ConsoleOpenVINO.csproj" Id="4b4aea70-e9b8-4150-9cc6-9abf67f32fe2" />
   <Project Path="RapidOCRSharpOnnx.Test/RapidOCRSharpOnnx.Test.csproj">
     <Platform Project="x64" />
   </Project>
