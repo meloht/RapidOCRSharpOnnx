@@ -38,6 +38,12 @@ namespace RapidOCRSharpOnnx.Utils
             {
                 string fontName = UtilsHelper.GetFontName(ocrConfig.LangRec);
                 using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(fontName);
+
+                //Assembly assembly = Assembly.GetExecutingAssembly();
+
+                // 先查看实际资源名
+                //string[] names = assembly.GetManifestResourceNames();
+
                 using var ms = new MemoryStream();
                 stream.CopyTo(ms);
                 _typeface = SKTypeface.FromData(SKData.CreateCopy(ms.ToArray()));
