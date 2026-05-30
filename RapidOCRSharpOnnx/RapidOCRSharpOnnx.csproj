@@ -55,7 +55,7 @@
 		<None Update="Assets\Fonts\el.ttf">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="Assets\Fonts\FZYTK.ttf">
+		<None Update="Assets\Fonts\FZYTK.TTF">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="Assets\Fonts\japan.ttc">
