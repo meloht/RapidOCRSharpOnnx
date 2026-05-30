@@ -19,9 +19,9 @@ namespace RapidOCRSharpOnnx.Utils
         {
             string fontFileName = langRec switch
             {
-                LangRec.CH => "FZYTK.TTF",
-                LangRec.CH_DOC => "FZYTK.TTF",
-                LangRec.EN => "FZYTK.TTF",
+                LangRec.CH => "FZYTK.ttf",
+                LangRec.CH_DOC => "FZYTK.ttf",
+                LangRec.EN => "FZYTK.ttf",
                 LangRec.ARABIC => "arabic.ttf",
                 LangRec.CHINESE_CHT => "chinese_cht.ttf",
                 LangRec.CYRILLIC => "cyrillic.ttf",
