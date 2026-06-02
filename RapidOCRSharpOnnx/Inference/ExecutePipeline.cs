@@ -98,14 +98,17 @@ namespace RapidOCRSharpOnnx.Inference
 
             Channel<OcrBatchResult> channelDetNext = GetDetNextChannel(channelRecPre);
 
-            _ = Task.Run(async () => await _ocrDetector.BatchDetectAsync(imageList, channelDetNext.Writer, batchResults));
+            List<Task> tasks = new List<Task>();
+            tasks.Add(_ocrDetector.BatchDetectAsync(imageList, channelDetNext.Writer, batchResults));
 
             if (_ocrClassifier != null)
             {
-                _ = BatchClsRead(channelDetNext, channelRecPre.Writer).ContinueWith(t =>
+                var clsTask = BatchClsRead(channelDetNext, channelRecPre.Writer).ContinueWith(t =>
                 {
                     channelRecPre.Writer.Complete();
                 });
+
+                tasks.Add(clsTask);
 
             }
 
@@ -118,7 +121,7 @@ namespace RapidOCRSharpOnnx.Inference
                 item.DetResult?.ImgCropList?.Dispose();
                 yield return item;
             }
-
+            await Task.WhenAll(tasks);
         }
 
         public OcrResult RecognizeText(Mat image, string savePath = null)
@@ -196,22 +199,22 @@ namespace RapidOCRSharpOnnx.Inference
         {
             await foreach (OcrBatchResult item in channelRecPre.Reader.ReadAllAsync())
             {
-                await _ocrRecognizer.BatchRecAsync(item).ContinueWith(t => 
+                await _ocrRecognizer.BatchRecAsync(item).ContinueWith(async t =>
                 {
-                    _ = InferCompleteAsync(item, processCallback, receiveAction);
+                    await InferCompleteAsync(item, processCallback, receiveAction);
                 });
-              
+
             }
         }
         private async Task BatchParallelRecRead(Channel<OcrBatchResult> channelRecPre, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
         {
             await foreach (OcrBatchResult item in channelRecPre.Reader.ReadAllAsync())
             {
-                await _ocrRecognizer.BatchParallelRecAsync(item).ContinueWith(t => 
+                await _ocrRecognizer.BatchParallelRecAsync(item).ContinueWith(async t =>
                 {
-                    _ = InferCompleteAsync(item, processCallback, receiveAction);
+                    await InferCompleteAsync(item, processCallback, receiveAction);
                 });
-                
+
             }
         }
         private async Task InferCompleteAsync(OcrBatchResult result, IBatchProcessCallback processCallback, Action<OcrBatchResult> receiveAction)
@@ -261,7 +264,7 @@ namespace RapidOCRSharpOnnx.Inference
 
         #region batch channel Parallel
 
-      
+
         public OcrBatchResult[] BatchParallelAsync(List<string> imageList, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
         {
             OcrBatchResult[] batchResults = new OcrBatchResult[imageList.Count];
@@ -293,7 +296,7 @@ namespace RapidOCRSharpOnnx.Inference
 
                 tasks.Add(consumerRec);
 
-                Task.WaitAll(tasks.ToArray());
+                Task.WaitAll([.. tasks]);
 
                 SaveDrawImage(saveDir, batchResults);
             }
@@ -325,15 +328,16 @@ namespace RapidOCRSharpOnnx.Inference
 
             Channel<OcrBatchResult> channelDetNext = GetDetNextChannel(channelRecPre);
 
-            _ = Task.Run(async () => await _ocrDetector.BatchDetectAsync(imageList, channelDetNext.Writer, batchResults));
-
+            List<Task> tasks = new List<Task>();
+            var processTask = _ocrDetector.BatchDetectAsync(imageList, channelDetNext.Writer, batchResults);
+            tasks.Add(processTask);
             if (_ocrClassifier != null)
             {
-                _ = BatchParallelClsRead(channelDetNext, channelRecPre.Writer).ContinueWith(t =>
+                var clsTask = BatchParallelClsRead(channelDetNext, channelRecPre.Writer).ContinueWith(t =>
                 {
                     channelRecPre.Writer.Complete();
                 });
-
+                tasks.Add(clsTask);
             }
 
             CheckSaveDir(saveDir);
@@ -345,6 +349,8 @@ namespace RapidOCRSharpOnnx.Inference
                 item.DetResult?.ImgCropList?.Dispose();
                 yield return item;
             }
+
+            await Task.WhenAll(tasks);
         }
 
         #endregion
