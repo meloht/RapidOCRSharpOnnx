@@ -40,12 +40,7 @@ namespace RapidOCRSharpOnnx.Utils
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(_poolSzie);
 
             _pool = new ImageBatchData[poolSzie];
-            // 预热池
-            for (int i = 0; i < _poolSzie; i++)
-            {
-                _pool[i] = new ImageBatchData(_inputSizeInBytes, _inputShape);
-            }
-            _currentIndex = _pool.Length - 1;
+           
         }
 
         /// <summary>
