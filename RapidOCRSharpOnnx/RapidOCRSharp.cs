@@ -99,13 +99,13 @@ namespace RapidOCRSharpOnnx
         /// <param name="processCallback">callback interface(optional)</param>
         /// <param name="receiveAction">receive result action delegate(optional)</param>
         /// <returns>Result including detect result & classifier result(optional) recognize result & image path & text block  & performance time</returns>
-        public OcrBatchResult[] BatchAsync(List<string> imageList, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
+        public OcrBatchResult[] BatchAsync(IReadOnlyList<string> imageList, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
         {
             ThrowIfDisposed();
             var list = UtilsHelper.GetFilesFromListPaths(imageList);
             ValidationUtils.ValidationImageListCount(list);
             ValidationUtils.ValidationBatchPoolSize(Configuration.BatchPoolSize);
-            return _executePipeline.BatchAsync(imageList, saveDir, processCallback, receiveAction);
+            return _executePipeline.BatchAsync(list, saveDir, processCallback, receiveAction);
         }
         /// <summary>
         /// Muti channel batch inference foreach api cannot set the inference batchsize( default batchsize = 1 )
@@ -113,13 +113,13 @@ namespace RapidOCRSharpOnnx
         /// <param name="imageList">image list</param>
         /// <param name="saveDir">the save folder for draw result image(optional)</param>
         /// <returns>Result including detect result & classifier result(optional) recognize result & image path & text block  & performance time</returns>
-        public IAsyncEnumerable<OcrBatchResult> BatchForeachAsync(List<string> imageList, string saveDir = null)
+        public IAsyncEnumerable<OcrBatchResult> BatchForeachAsync(IReadOnlyList<string> imageList, string saveDir = null)
         {
             ThrowIfDisposed();
             var list = UtilsHelper.GetFilesFromListPaths(imageList);
             ValidationUtils.ValidationImageListCount(list);
             ValidationUtils.ValidationBatchPoolSize(Configuration.BatchPoolSize);
-            return _executePipeline.BatchForeachAsync(imageList, saveDir);
+            return _executePipeline.BatchForeachAsync(list, saveDir);
         }
         /// <summary>
         /// Muti channel batch inference foreach api cannot set the inference batchsize( default batchsize = 1 )
@@ -156,12 +156,12 @@ namespace RapidOCRSharpOnnx
         /// <param name="processCallback">callback interface(optional)</param>
         /// <param name="receiveAction">receive result action delegate(optional)</param>
         /// <returns>Result including detect result & classifier result(optional) recognize result & image path & text block  & performance time</returns>
-        public OcrBatchResult[] BatchParallelAsync(List<string> imageList, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
+        public OcrBatchResult[] BatchParallelAsync(IReadOnlyList<string> imageList, string saveDir = null, IBatchProcessCallback processCallback = null, Action<OcrBatchResult> receiveAction = null)
         {
             ThrowIfDisposed();
             var list = UtilsHelper.GetFilesFromListPaths(imageList);
             ValidationUtils.ValidationImageListCount(list);
-            return _executePipeline.BatchParallelAsync(imageList, saveDir, processCallback, receiveAction);
+            return _executePipeline.BatchParallelAsync(list, saveDir, processCallback, receiveAction);
         }
 
         /// <summary>
@@ -182,12 +182,12 @@ namespace RapidOCRSharpOnnx
         /// <param name="imageList">image list</param>
         /// <param name="saveDir">the save folder for draw result image(optional)</param>
         /// <returns>Result including detect result & classifier result(optional) recognize result & image path & text block  & performance time</returns>
-        public IAsyncEnumerable<OcrBatchResult> BatchParallelForeachAsync(List<string> imageList, string saveDir = null)
+        public IAsyncEnumerable<OcrBatchResult> BatchParallelForeachAsync(IReadOnlyList<string> imageList, string saveDir = null)
         {
             ThrowIfDisposed();
             var list = UtilsHelper.GetFilesFromListPaths(imageList);
             ValidationUtils.ValidationImageListCount(list);
-            return _executePipeline.BatchParallelForeachAsync(imageList, saveDir);
+            return _executePipeline.BatchParallelForeachAsync(list, saveDir);
         }
         private void ThrowIfDisposed()
         {

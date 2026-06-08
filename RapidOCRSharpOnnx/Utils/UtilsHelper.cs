@@ -99,7 +99,7 @@ namespace RapidOCRSharpOnnx.Utils
 
         }
 
-        public static List<string> GetFilesFromListPaths(List<string> images)
+        public static List<string> GetFilesFromListPaths(IReadOnlyList<string> images)
         {
             List<string> list = new List<string>();
             foreach (var item in images)
