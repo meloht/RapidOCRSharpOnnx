@@ -4,6 +4,7 @@
 # RapidOCRSharpOnnx
 ![PP-OCRv4](https://img.shields.io/badge/PP--OCR-v4-blue)
 ![PP-OCRv5](https://img.shields.io/badge/PP--OCR-v5-blue)
+![PP-OCRv6](https://img.shields.io/badge/PP--OCR-v6-blue)
 ![C#](https://img.shields.io/badge/language-C%23-blue.svg) 
 ![.NET Version](https://img.shields.io/badge/dynamic/xml?url=https://raw.githubusercontent.com/meloht/RapidOCRSharpOnnx/refs/heads/master/RapidOCRSharpOnnx/RapidOCRSharpOnnx.csproj&query=//TargetFrameworks&label=.NET)
 ![ONNX Runtime](https://img.shields.io/badge/ONNX-Runtime-blue.svg?logo=onnx&logoColor=white)
@@ -19,14 +20,14 @@
 Referring to the [RapidOCR](https://github.com/RapidAI/RapidOCR) project, it is a python version of the C# implementation with a redesigned and optimized architecture.
 
 # Features
- - **Supported Languages**  PP-OCRv5 provides multilingual text recognition capabilities covering 106 languages, please refer to the documentation: [PP-OCRv5 Multilingual Text Recognition](https://www.paddleocr.ai/main/en/version3.x/algorithm/PP-OCRv5/PP-OCRv5_multi_languages.html).
+ - **Supported Languages**  PP-OCRv6 a single model supports 50 languages including Chinese, English, Japanese, and 46 Latin-script languages., please refer to the documentation: [PP-OCRv6 Introduction](https://www.paddleocr.ai/main/en/version3.x/algorithm/PP-OCRv6/PP-OCRv6.html).
  - **Execution Provider** CPU, CUDA / TensorRT, OpenVINO, CoreML, DirectML
  - **Batch processing images** Preprocess and Inference are executed asynchronously  with Producer/Consumer pattern
  - **High Performance Inference** Memory reuse, GPU Inference with I/O Binding
  - **Image Processing** [OpenCvSharp4](https://github.com/shimat/opencvsharp)
  - **Draw Result Image** [SkiaSharp](https://github.com/mono/SkiaSharp)
  - **Inference Engine** [ONNX Runtime](https://github.com/microsoft/onnxruntime) is a cross-platform inference and training machine-learning accelerator.
- - **PP-OCR Versions** Includes support for: [PP-OCRv5](https://www.paddleocr.ai/v3.0.0/version3.x/pipeline_usage/OCR.html), [PP-OCRv4](https://www.paddleocr.ai/v3.0.0/version3.x/pipeline_usage/PP-ChatOCRv4.html)
+ - **PP-OCR Versions** Includes support for: [PP-OCRv6](https://www.paddleocr.ai/main/en/version3.x/algorithm/PP-OCRv6/PP-OCRv6.html), [PP-OCRv5](https://www.paddleocr.ai/v3.0.0/version3.x/pipeline_usage/OCR.html), [PP-OCRv4](https://www.paddleocr.ai/v3.0.0/version3.x/pipeline_usage/PP-ChatOCRv4.html)
 
 ## Example Images:
 
@@ -45,6 +46,12 @@ Referring to the [RapidOCR](https://github.com/RapidAI/RapidOCR) project, it is 
 # Usage
 ### 1. Export model to ONNX format:
 For convert the pre-trained PP-OCR model to ONNX format, please refer to the the documentation: [Obtaining ONNX Models](https://www.paddleocr.ai/v3.0.0/version3.x/deployment/obtaining_onnx_models.html), or download from rapid-ocr [Model List](https://www.modelscope.cn/models/RapidAI/RapidOCR/tree/master/onnx).
+
+**Official download of PP-OCRv6 onnx format**
+
+[huggingface download](https://huggingface.co/collections/PaddlePaddle/pp-ocrv6)
+
+[modelscope download](https://www.modelscope.cn/collections/PaddlePaddle/PP-OCRv6)
 
 ### 2. Load the ONNX model with C#:
 Install Nuget packages `RapidOCRSharpOnnx`, `OnnxRuntime`, `OpenCvSharp4.runtime`
