@@ -9,7 +9,7 @@
 		<Title>RapidOCRSharpOnnx</Title>
 		<PackageProjectUrl>https://github.com/meloht/RapidOCRSharpOnnx</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/meloht/RapidOCRSharpOnnx</RepositoryUrl>
-		<PackageTags>ocr;paddle-ocr;paddleocr;csharp;onnx;onnx-runtime;cross-platform;cpu;cuda;gpu;tensorrt;coreml;directml;openvino;computer-vision;text-recognition;text-detection</PackageTags>
+		<PackageTags>ocr;paddle-ocr;paddleocr;PP-OCRv6;PP-OCRv5;PP-OCRv4;csharp;onnx;onnx-runtime;cross-platform;cpu;cuda;gpu;tensorrt;coreml;directml;openvino;computer-vision;text-recognition;text-detection</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Authors>meloht</Authors>
 		<Version>1.2.0</Version>
