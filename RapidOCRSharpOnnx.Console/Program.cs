@@ -36,12 +36,15 @@ namespace RapidOCRSharpOnnx.ConsoleApp
             //string imgPath = @"D:\code\model\OCRTestImages\text_vertical_words.png";
             //string imgPath = @"D:\code\model\xx.png";
 
-            string detectPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-OCRv5_det_mobile.onnx";
-            string recogPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-OCRv5_rec_mobile.onnx";
+            //string detectPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-OCRv5_det_mobile.onnx";
+            //string recogPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-OCRv5_rec_mobile.onnx";
+            //string clsPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-LCNet_x0_25_textline_ori_cls_mobile.onnx";
+            string detectPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\PP-OCRv6_small_det.onnx";
+            string recogPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\PP-OCRv6_small_rec.onnx";
             string clsPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-LCNet_x0_25_textline_ori_cls_mobile.onnx";
 
             string font = @"C:\Windows\Fonts\msyh.ttc";
-            using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderDirectML(new OcrConfig(detectPath, recogPath, LangRec.CH, OCRVersion.PPOCRV5, clsPath), _deviceId));
+            using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderDirectML(new OcrConfig(detectPath, recogPath, LangRec.CH, OCRVersion.PPOCRV6, clsPath), _deviceId));
 
             string savePath = $"res_{Path.GetFileName(imgPath)}";
             var result = ocr.RecognizeText(imgPath, savePath);

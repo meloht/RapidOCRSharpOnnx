@@ -28,7 +28,7 @@ namespace RapidOCRSharpOnnx.Utils
         public OcrDrawerSkia(OcrConfig ocrConfig)
         {
             _ocrConfig = ocrConfig;
-          
+
             if (!string.IsNullOrEmpty(ocrConfig.FontPath))
             {
                 string fontPath = ocrConfig.FontPath;
@@ -37,20 +37,20 @@ namespace RapidOCRSharpOnnx.Utils
             else
             {
                 string fontName = UtilsHelper.GetFontName(ocrConfig.LangRec);
-                using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(fontName);
-
                 //Assembly assembly = Assembly.GetExecutingAssembly();
 
                 // 先查看实际资源名
                 //string[] names = assembly.GetManifestResourceNames();
 
-                using var ms = new MemoryStream();
-                stream.CopyTo(ms);
-                _typeface = SKTypeface.FromData(SKData.CreateCopy(ms.ToArray()));
+                var fontBytes = UtilsHelper.LoadEmbeddedFont(fontName);
+
+                _typeface = SKTypeface.FromData(SKData.CreateCopy(fontBytes));
 
             }
             _textCalRecBox = new TextCalRecBox(ocrConfig);
         }
+
+
 
         public void DrawTextBlock(Mat image, string savePath, DetResult detResult, RecResult[] recResults)
         {

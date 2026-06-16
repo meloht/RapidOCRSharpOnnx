@@ -13,7 +13,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 using System.Threading.Channels;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
 {
@@ -28,7 +28,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
         public ClsPreprocess(OcrConfig ocrConfig)
         {
             _ocrConfig = ocrConfig;
-            if (_ocrConfig.ClassifierConfig.OCRVersion == OCRVersion.PPOCRV5)
+            if (_ocrConfig.OcrVersion == OCRVersion.PPOCRV5 || _ocrConfig.OcrVersion == OCRVersion.PPOCRV6)
             {
                 _clsImageShape = ClsImageShapev5;
             }

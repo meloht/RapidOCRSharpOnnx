@@ -75,7 +75,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
             int len = resizedImg.Height * resizedImg.Width * 3;
             float[] inputData = ArrayPool<float>.Shared.Rent(len);
 
-            if (_ocrConfig.DetectorConfig.OCRVersion == OCRVersion.PPOCRV5)
+            if (_ocrConfig.OcrVersion == OCRVersion.PPOCRV5)
             {
                 if (Avx2.IsSupported)
                 {

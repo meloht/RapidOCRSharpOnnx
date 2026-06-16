@@ -6,6 +6,7 @@ using RapidOCRSharpOnnx.Models;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Channels;
@@ -14,7 +15,7 @@ namespace RapidOCRSharpOnnx.Utils
 {
     public static class UtilsHelper
     {
-
+        internal const string PP_OCR_dict = "RapidOCRSharpOnnx.Assets.dict.ppocrv6_dict.txt";
         internal static string GetFontName(LangRec langRec)
         {
             string fontFileName = langRec switch
@@ -40,7 +41,30 @@ namespace RapidOCRSharpOnnx.Utils
 
             return $"RapidOCRSharpOnnx.Assets.Fonts.{fontFileName}";
         }
+        public static string[] LoadDictionary(string resourceName)
+        {
+            using var stream =
+                Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName)
+                ?? throw new FileNotFoundException(resourceName);
 
+            using var reader = new StreamReader(stream);
+
+            return reader.ReadToEnd().Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+        }
+        public static byte[] LoadEmbeddedFont(string resourceName)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+
+            using var stream =
+                assembly.GetManifestResourceStream(resourceName)
+                ?? throw new FileNotFoundException(resourceName);
+
+            using var ms = new MemoryStream();
+
+            stream.CopyTo(ms);
+
+            return ms.ToArray();
+        }
         public static string BuildTextBlocks(RecResult[] recResults, float textScore)
         {
             if (recResults == null || recResults.Length == 0)

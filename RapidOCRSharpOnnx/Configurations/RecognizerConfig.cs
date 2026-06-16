@@ -14,5 +14,6 @@ namespace RapidOCRSharpOnnx.Configurations
         public float TextScore = 0.5f;
 
 
+
     }
 }
