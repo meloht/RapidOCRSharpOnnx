@@ -20,7 +20,7 @@
 Referring to the [RapidOCR](https://github.com/RapidAI/RapidOCR) project, it is a python version of the C# implementation with a redesigned and optimized architecture.
 
 # Features
- - **Supported Languages**  PP-OCRv6 a single model supports 50 languages including Chinese, English, Japanese, and 46 Latin-script languages., please refer to the documentation: [PP-OCRv6 Introduction](https://www.paddleocr.ai/main/en/version3.x/algorithm/PP-OCRv6/PP-OCRv6.html).
+ - **Supported Languages**  PP-OCRv6 built on the newly designed PPLCNetV4 unified backbone, a single model supports 50 languages including Chinese, English, Japanese, and 46 Latin-script languages., please refer to the documentation: [PP-OCRv6 Introduction](https://www.paddleocr.ai/main/en/version3.x/algorithm/PP-OCRv6/PP-OCRv6.html).
  - **Execution Provider** CPU, CUDA / TensorRT, OpenVINO, CoreML, DirectML
  - **Batch processing images** Preprocess and Inference are executed asynchronously  with Producer/Consumer pattern
  - **High Performance Inference** Memory reuse, GPU Inference with I/O Binding
