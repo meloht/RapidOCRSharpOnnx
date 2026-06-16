@@ -42,9 +42,16 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
 
         private List<string> GetCharacterList(string key = "character")
         {
+
             var map = _session.ModelMetadata.CustomMetadataMap;
             if (map.ContainsKey(key))
                 return map[key].Split('\n').ToList();
+
+            if (_ocrConfig.OcrVersion == OCRVersion.PPOCRV6)
+            {
+                var labels = UtilsHelper.LoadDictionary(UtilsHelper.PP_OCR_dict);
+                return [.. labels];
+            }
 
             return new List<string>();
         }

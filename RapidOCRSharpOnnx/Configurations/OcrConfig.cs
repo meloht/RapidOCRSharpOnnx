@@ -25,7 +25,7 @@ namespace RapidOCRSharpOnnx.Configurations
             get { return _batchPoolSize; }
             set
             {
-                if (value < 1 && value > 100)
+                if (value < 1 || value > 100)
                 {
                     throw new ArgumentException("The BatchPoolSize must be between 1 and 100");
                 }
@@ -38,6 +38,8 @@ namespace RapidOCRSharpOnnx.Configurations
         public ClassifierConfig ClassifierConfig { get; set; }
 
         public RecognizerConfig RecognizerConfig { get; set; }
+
+        public OCRVersion OcrVersion { get; set; }
 
         /// <summary>
         /// OCR config
@@ -59,12 +61,27 @@ namespace RapidOCRSharpOnnx.Configurations
                 throw new ArgumentException("Recognizer ModelPath is null or empty.");
             }
             LangRec = langFont;
-            DetectorConfig = new DetectorConfig { ModelPath = detectorModelPath, OCRVersion = ocrVersion };
+            this.OcrVersion = ocrVersion;
+
+            DetectorConfig = new DetectorConfig { ModelPath = detectorModelPath };
             RecognizerConfig = new RecognizerConfig { ModelPath = recognizerModelPath };
 
             if (!string.IsNullOrWhiteSpace(classifierModelPath))
             {
-                ClassifierConfig = new ClassifierConfig { OCRVersion = ocrVersion, ModelPath = classifierModelPath };
+                ClassifierConfig = new ClassifierConfig { ModelPath = classifierModelPath };
+            }
+
+            if (ocrVersion == OCRVersion.PPOCRV4)
+            {
+                PPOCRv4DefaultConfig.SetDefault(this.DetectorConfig);
+            }
+            else if (ocrVersion == OCRVersion.PPOCRV5)
+            {
+                PPOCRv5DefaultConfig.SetDefault(this.DetectorConfig);
+            }
+            else if (ocrVersion == OCRVersion.PPOCRV6)
+            {
+                PPOCRv6DefaultConfig.SetDefault(this.DetectorConfig);
             }
 
         }

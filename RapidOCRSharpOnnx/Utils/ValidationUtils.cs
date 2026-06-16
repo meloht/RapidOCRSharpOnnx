@@ -12,10 +12,10 @@ namespace RapidOCRSharpOnnx.Utils
             {
                 throw new ArgumentNullException(nameof(imagePath), $"{nameof(imagePath)} cannot be null or empty.");
             }
-            if (!File.Exists(imagePath))
-            {
-                throw new FileNotFoundException($"{nameof(imagePath)} does not exist.", imagePath);
-            }
+            //if (!File.Exists(imagePath))
+            //{
+            //    throw new FileNotFoundException($"{nameof(imagePath)} does not exist.", imagePath);
+            //}
             string extension = Path.GetExtension(imagePath).ToLower();
             if (!UtilsHelper.IsImageByExtension(extension))
             {
