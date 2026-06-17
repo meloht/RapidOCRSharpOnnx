@@ -31,10 +31,11 @@ namespace RapidOCRSharpOnnx.ConsoleApp
 
         private static void TestImage()
         {
-            string imgPath = @"E:\Hp\ai-image\ADFtools\headerText.png";
+            //string imgPath = @"E:\Hp\ai-image\ADFtools\headerText.png";
             //string imgPath = @"D:\code\model\OCRTestImages\yongledadian2.png";
             //string imgPath = @"D:\code\model\OCRTestImages\text_vertical_words.png";
             //string imgPath = @"D:\code\model\xx.png";
+            string imgPath = @"D:\code\model\OCRTestImages\en_txt.png";
 
             //string detectPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-OCRv5_det_mobile.onnx";
             //string recogPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-OCRv5_rec_mobile.onnx";
