@@ -18,7 +18,7 @@ namespace RapidOCRSharpOnnx.Configurations
         public float BoxThresh { get; set; } = 0.6f;
         public int MaxCandidates { get; set; } = 3000;
         public float UnclipRatio { get; set; } = 1.5f;
-        public bool UseDilation { get; set; } = false;
+        public bool UseDilation { get; set; } = true;
         public ScoreMode ScoreMode { get; set; } = ScoreMode.FAST;
 
 
