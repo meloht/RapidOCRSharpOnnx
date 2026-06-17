@@ -11,11 +11,11 @@ namespace RapidOCRSharpOnnx.Configurations
         public static float[] Mean = [0.485f, 0.456f, 0.406f];
         public static float[] Std = [0.229f, 0.224f, 0.225f];
 
-        public static float Thresh = 0.2f;
-        public static float BoxThresh = 0.45f;
+        public static float Thresh = 0.3f;
+        public static float BoxThresh = 0.5f;
         public static int MaxCandidates = 3000;
-        public static float UnclipRatio = 1.4f;
-        public static bool UseDilation = false;
+        public static float UnclipRatio = 1.5f;
+        public static bool UseDilation = true;
 
         public static void SetDefault(DetectorConfig config)
         {
