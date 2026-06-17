@@ -11,7 +11,7 @@ namespace RapidOCRSharpOnnx.Configurations
         public float DrawVerticalFontScaling { get; set; } = 0.62f;
         public int MinHeight { get; set; } = 30;
         public int WidthHeightRatio { get; set; } = 8;
-        public int MaxSideLen { get; set; } = 4000;
+        public int MaxSideLen { get; set; } = 2000;
         public int MinSideLen { get; set; } = 30;
         public bool ReturnWordBox { get; set; } = false;
         public bool ReturnSingleCharBox { get; set; } = false;

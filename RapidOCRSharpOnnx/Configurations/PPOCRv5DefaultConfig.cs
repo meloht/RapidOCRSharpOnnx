@@ -9,7 +9,7 @@ namespace RapidOCRSharpOnnx.Configurations
     internal static class PPOCRv5DefaultConfig
     {
         public static float[] Mean = [0f, 0f, 0f];
-        public static float[] Std  = [1f, 1f, 1f];
+        public static float[] Std = [1f, 1f, 1f];
 
         public static float Thresh  = 0.3f;
         public static float BoxThresh  = 0.5f;

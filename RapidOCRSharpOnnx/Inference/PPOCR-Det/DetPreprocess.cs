@@ -52,7 +52,6 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
             int maxWh = Math.Max(image.Width, image.Height);
             int limitSideLen = _ocrConfig.DetectorConfig.LimitSideLen;
             if (_ocrConfig.DetectorConfig.LimitType == LimitType.Min)
-
             {
                 limitSideLen = _ocrConfig.DetectorConfig.LimitSideLen;
             }
@@ -75,28 +74,37 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
             int len = resizedImg.Height * resizedImg.Width * 3;
             float[] inputData = ArrayPool<float>.Shared.Rent(len);
 
-            if (_ocrConfig.OcrVersion == OCRVersion.PPOCRV5)
+            if (Avx2.IsSupported)
             {
-                if (Avx2.IsSupported)
-                {
-                    ToCHW_RGB_Normalized_AVX2V5(resizedImg, inputData);
-                }
-                else
-                {
-                    ToCHW_RGB_NormalizedV5(resizedImg, inputData);
-                }
+                ToCHW_RGB_Normalized_AVX2V4(resizedImg, inputData);
             }
             else
             {
-                if (Avx2.IsSupported)
-                {
-                    ToCHW_RGB_Normalized_AVX2V4(resizedImg, inputData);
-                }
-                else
-                {
-                    ToCHW_RGB_NormalizedV4(resizedImg, inputData);
-                }
+                ToCHW_RGB_NormalizedV4(resizedImg, inputData);
             }
+
+            //if (_ocrConfig.OcrVersion == OCRVersion.PPOCRV5)
+            //{
+            //    if (Avx2.IsSupported)
+            //    {
+            //        ToCHW_RGB_Normalized_AVX2V5(resizedImg, inputData);
+            //    }
+            //    else
+            //    {
+            //        ToCHW_RGB_NormalizedV5(resizedImg, inputData);
+            //    }
+            //}
+            //else
+            //{
+            //    if (Avx2.IsSupported)
+            //    {
+            //        ToCHW_RGB_Normalized_AVX2V4(resizedImg, inputData);
+            //    }
+            //    else
+            //    {
+            //        ToCHW_RGB_NormalizedV4(resizedImg, inputData);
+            //    }
+            //}
 
             return new DetPreprocessData(inputData, [1, resizedImg.Channels(), resizedImg.Height, resizedImg.Width]);
         }
@@ -553,6 +561,60 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
 
             resizeData.RatioH = ratioH;
             resizeData.RatioW = ratioW;
+        }
+
+        public static Mat ResizeToMultipleOf32(Mat src, int limitSideLen, string limitType, int maxSideLimit)
+        {
+            int h = src.Rows;
+            int w = src.Cols;
+
+            double ratio;
+
+            switch (limitType.ToLower())
+            {
+                case "max":
+                    ratio = Math.Max(h, w) > limitSideLen
+                        ? (double)limitSideLen / Math.Max(h, w)
+                        : 1.0;
+                    break;
+
+                case "min":
+                    ratio = Math.Min(h, w) < limitSideLen
+                        ? (double)limitSideLen / Math.Min(h, w)
+                        : 1.0;
+                    break;
+
+                case "resize_long":
+                    ratio = (double)limitSideLen / Math.Max(h, w);
+                    break;
+
+                default:
+                    throw new ArgumentException($"Unsupported det limit type: {limitType}");
+            }
+
+            int newH = (int)(h * ratio);
+            int newW = (int)(w * ratio);
+
+            // 二次限制 maxSideLimit
+            if (Math.Max(newH, newW) > maxSideLimit)
+            {
+                ratio = (double)maxSideLimit / Math.Max(newH, newW);
+                newH = (int)(newH * ratio);
+                newW = (int)(newW * ratio);
+            }
+
+            // roundHalfToEven + align to 32
+            newH = Math.Max(RoundHalfToEven(newH / 32.0) * 32, 32);
+            newW = Math.Max(RoundHalfToEven(newW / 32.0) * 32, 32);
+
+            var dst = new Mat();
+            Cv2.Resize(src, dst, new Size(newW, newH), interpolation: InterpolationFlags.Linear);
+            return dst;
+        }
+
+        private static int RoundHalfToEven(double value)
+        {
+            return (int)Math.Round(value, MidpointRounding.ToEven);
         }
 
 
