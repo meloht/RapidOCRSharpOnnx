@@ -79,7 +79,7 @@ namespace RapidOCRSharpOnnx.Configurations
             {
                 PPOCRv5DefaultConfig.SetDefault(this.DetectorConfig);
             }
-            else if (ocrVersion == OCRVersion.PPOCRV6)
+            else if (ocrVersion == OCRVersion.PPOCRV6 || ocrVersion == OCRVersion.PPOCRV6Tiny)
             {
                 PPOCRv6DefaultConfig.SetDefault(this.DetectorConfig);
             }

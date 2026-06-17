@@ -16,6 +16,7 @@ namespace RapidOCRSharpOnnx.Utils
     public static class UtilsHelper
     {
         internal const string PP_OCR_dict = "RapidOCRSharpOnnx.Assets.dict.ppocrv6_dict.txt";
+        internal const string PP_OCR_tiny_dict = "RapidOCRSharpOnnx.Assets.dict.ppocrv6_tiny_dict.txt";
         internal static string GetFontName(LangRec langRec)
         {
             string fontFileName = langRec switch

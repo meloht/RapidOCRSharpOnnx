@@ -52,6 +52,11 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
                 var labels = UtilsHelper.LoadDictionary(UtilsHelper.PP_OCR_dict);
                 return [.. labels];
             }
+            else if (_ocrConfig.OcrVersion == OCRVersion.PPOCRV6Tiny)
+            {
+                var labels = UtilsHelper.LoadDictionary(UtilsHelper.PP_OCR_tiny_dict);
+                return [.. labels];
+            }
 
             return new List<string>();
         }

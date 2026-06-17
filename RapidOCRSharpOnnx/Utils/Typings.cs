@@ -51,7 +51,8 @@ namespace RapidOCRSharpOnnx.Utils
     {
         PPOCRV4,
         PPOCRV5,
-        PPOCRV6
+        PPOCRV6,
+        PPOCRV6Tiny
     }
 
     public enum ModelType

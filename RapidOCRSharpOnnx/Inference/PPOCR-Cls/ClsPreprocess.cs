@@ -28,13 +28,14 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
         public ClsPreprocess(OcrConfig ocrConfig)
         {
             _ocrConfig = ocrConfig;
-            if (_ocrConfig.OcrVersion == OCRVersion.PPOCRV5 || _ocrConfig.OcrVersion == OCRVersion.PPOCRV6)
+            if (_ocrConfig.OcrVersion == OCRVersion.PPOCRV4)
             {
-                _clsImageShape = ClsImageShapev5;
+                _clsImageShape = ClsImageShapev4;
+
             }
             else
             {
-                _clsImageShape = ClsImageShapev4;
+                _clsImageShape = ClsImageShapev5;
             }
         }
 
