@@ -13,8 +13,14 @@ namespace RapidOCRSharpOnnx.Providers
 {
     public class ExecutionProviderCPU : ExecutionProvider
     {
-        public ExecutionProviderCPU(OcrConfig ocrConfig) : base(ocrConfig)
+        public ExecutionProviderCPU(OcrConfig ocrConfig)
+            : this(ocrConfig, null, null, null)
         {
+        }
+        public ExecutionProviderCPU(OcrConfig ocrConfig, SessionOptions detOpt = null, SessionOptions clsOpt = null, SessionOptions recOpt = null)
+            : base(ocrConfig, detOpt, clsOpt, recOpt)
+        {
+
         }
 
         protected override InferenceSession BuildInferenceSession(string modelPath, SessionOptions sessionOptions)

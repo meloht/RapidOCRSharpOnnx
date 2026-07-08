@@ -19,7 +19,12 @@ namespace RapidOCRSharpOnnx.Providers
         private const string NPU = "NPU";
         private IntelDeviceType _intelDeviceType;
 
-        public ExecutionProviderOpenVINO(OcrConfig ocrConfig, IntelDeviceType intelDeviceType) : base(ocrConfig)
+        public ExecutionProviderOpenVINO(OcrConfig ocrConfig, IntelDeviceType intelDeviceType)
+            : this(ocrConfig, intelDeviceType, null, null, null)
+        {
+        }
+        public ExecutionProviderOpenVINO(OcrConfig ocrConfig, IntelDeviceType intelDeviceType, SessionOptions detOpt = null, SessionOptions clsOpt = null, SessionOptions recOpt = null)
+            : base(ocrConfig, detOpt, clsOpt, recOpt)
         {
             _intelDeviceType = intelDeviceType;
         }

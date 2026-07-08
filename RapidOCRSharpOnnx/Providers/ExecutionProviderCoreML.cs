@@ -14,7 +14,12 @@ namespace RapidOCRSharpOnnx.Providers
     public class ExecutionProviderCoreML : ExecutionProvider
     {
         private CoreMLFlags _coreMLFlags;
-        public ExecutionProviderCoreML(OcrConfig ocrConfig, CoreMLFlags coreMLFlags = CoreMLFlags.COREML_FLAG_USE_NONE) : base(ocrConfig)
+        public ExecutionProviderCoreML(OcrConfig ocrConfig, CoreMLFlags coreMLFlags = CoreMLFlags.COREML_FLAG_USE_NONE)
+            : this(ocrConfig, coreMLFlags, null, null, null)
+        {
+        }
+        public ExecutionProviderCoreML(OcrConfig ocrConfig, CoreMLFlags coreMLFlags = CoreMLFlags.COREML_FLAG_USE_NONE, SessionOptions detOpt = null, SessionOptions clsOpt = null, SessionOptions recOpt = null)
+            : base(ocrConfig, detOpt, clsOpt, recOpt)
         {
             _coreMLFlags = coreMLFlags;
         }

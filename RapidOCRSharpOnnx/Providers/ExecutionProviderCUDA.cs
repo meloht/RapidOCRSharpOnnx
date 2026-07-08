@@ -16,7 +16,12 @@ namespace RapidOCRSharpOnnx.Providers
         private int _deviceId;
         private Dictionary<string, string> _providerOptionsDict;
 
-        public ExecutionProviderCUDA(OcrConfig ocrConfig, int deviceId = 0, Dictionary<string, string> providerOptionsDict = null) : base(ocrConfig)
+        public ExecutionProviderCUDA(OcrConfig ocrConfig, int deviceId = 0, Dictionary<string, string> providerOptionsDict = null) 
+            : this(ocrConfig, deviceId, providerOptionsDict, null, null, null)
+        {
+        }
+        public ExecutionProviderCUDA(OcrConfig ocrConfig, int deviceId = 0, Dictionary<string, string> providerOptionsDict = null, SessionOptions detOpt = null, SessionOptions clsOpt = null, SessionOptions recOpt = null)
+            : base(ocrConfig, detOpt, clsOpt, recOpt)
         {
             _deviceId = deviceId;
             _providerOptionsDict = providerOptionsDict;

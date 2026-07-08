@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.ML.OnnxRuntime;
 using OpenCvSharp;
 using RapidOCRSharpOnnx.Configurations;
 using RapidOCRSharpOnnx.Providers;
@@ -17,7 +18,7 @@ namespace RapidOCRSharpOnnx.ConsoleApp
             //TestBatch();
             //_=TestBatchForeachAsync();
             //TestListSeq();
-             //TestListSeq2();
+            //TestListSeq2();
             TestImage();
 
             //Parallel.For(0, 100, i =>
@@ -54,7 +55,9 @@ namespace RapidOCRSharpOnnx.ConsoleApp
             string clsPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-LCNet_x0_25_textline_ori_cls_mobile.onnx";
 
             string font = @"C:\Windows\Fonts\msyh.ttc";
-            using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderDirectML(new OcrConfig(detectPath, recogPath, font, OCRVersion.PPOCRV6Tiny, clsPath), _deviceId));
+            using SessionOptions sessionOptions = new SessionOptions();
+            sessionOptions.ExecutionMode = ExecutionMode.ORT_SEQUENTIAL;
+            using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderDirectML(new OcrConfig(detectPath, recogPath, font, OCRVersion.PPOCRV6Tiny, clsPath), _deviceId, detOpt: sessionOptions));
 
             string savePath = $"res_{Path.GetFileName(imgPath)}";
             var result = ocr.RecognizeText(imgPath, savePath);

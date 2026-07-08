@@ -14,7 +14,13 @@ namespace RapidOCRSharpOnnx.Providers
     {
         private int _deviceId;
 
-        public ExecutionProviderDirectML(OcrConfig ocrConfig, int deviceId = 0) : base(ocrConfig)
+        public ExecutionProviderDirectML(OcrConfig ocrConfig, int deviceId = 0)
+            : this(ocrConfig, deviceId, null, null, null)
+        {
+        }
+
+        public ExecutionProviderDirectML(OcrConfig ocrConfig, int deviceId = 0, SessionOptions detOpt = null, SessionOptions clsOpt = null, SessionOptions recOpt = null)
+            : base(ocrConfig, detOpt, clsOpt, recOpt)
         {
             _deviceId = deviceId;
         }
