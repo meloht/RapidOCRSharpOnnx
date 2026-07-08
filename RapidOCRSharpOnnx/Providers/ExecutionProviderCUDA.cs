@@ -16,15 +16,20 @@ namespace RapidOCRSharpOnnx.Providers
         private int _deviceId;
         private Dictionary<string, string> _providerOptionsDict;
 
-        public ExecutionProviderCUDA(OcrConfig ocrConfig, int deviceId = 0, Dictionary<string, string> providerOptionsDict = null) : base(ocrConfig)
+        public ExecutionProviderCUDA(OcrConfig ocrConfig, int deviceId = 0, Dictionary<string, string> providerOptionsDict = null) 
+            : this(ocrConfig, deviceId, providerOptionsDict, null, null, null)
+        {
+        }
+        public ExecutionProviderCUDA(OcrConfig ocrConfig, int deviceId = 0, Dictionary<string, string> providerOptionsDict = null, SessionOptions detOpt = null, SessionOptions clsOpt = null, SessionOptions recOpt = null)
+            : base(ocrConfig, detOpt, clsOpt, recOpt)
         {
             _deviceId = deviceId;
             _providerOptionsDict = providerOptionsDict;
         }
 
-        protected override SessionOptions BuildSessionOptions()
+        protected override InferenceSession BuildInferenceSession(string modelPath, SessionOptions sessionOptions)
         {
-            SessionOptions options;
+            using SessionOptions options = BuildSessionOptionsBase(sessionOptions);
             if (this._providerOptionsDict != null && this._providerOptionsDict.Count > 0)
             {
                 if (_providerOptionsDict.ContainsKey("device_id"))
@@ -35,34 +40,31 @@ namespace RapidOCRSharpOnnx.Providers
                 {
                     _providerOptionsDict.Add("device_id", _deviceId.ToString());
                 }
-                var cudaProviderOptions = new OrtCUDAProviderOptions();
+                using var cudaProviderOptions = new OrtCUDAProviderOptions();
                 cudaProviderOptions.UpdateOptions(_providerOptionsDict);
-                options = SessionOptions.MakeSessionOptionWithCudaProvider(cudaProviderOptions);
+                options.AppendExecutionProvider_CUDA(cudaProviderOptions);
             }
             else
             {
-                options = SessionOptions.MakeSessionOptionWithCudaProvider(_deviceId);
+                options.AppendExecutionProvider_CUDA(_deviceId);
             }
 
-            options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
-            options.EnableCpuMemArena = true;
-            options.EnableMemoryPattern = false;
-            return options;
+            return new InferenceSession(modelPath, options);
         }
 
-        protected override IOcrClassifier CreateOcrClassifier(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess)
+        protected override IOcrClassifier CreateOcrClassifier(InferenceSession session, IClsPostprocess postprocess, IClsPreprocess preprocess)
         {
-            return new TextClassifierIoBinding(session, options, postprocess, preprocess, OcrConfig, GetDeviceType());
+            return new TextClassifierIoBinding(session, postprocess, preprocess, OcrConfig, GetDeviceType());
         }
 
-        protected override IOcrDetector CreateOcrDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess)
+        protected override IOcrDetector CreateOcrDetector(InferenceSession session, IDetPostprocess postprocess, IDetPreprocess preprocess)
         {
-            return new TextDetectorIoBinding(session, options, postprocess, preprocess, OcrConfig, GetDeviceType());
+            return new TextDetectorIoBinding(session, postprocess, preprocess, OcrConfig, GetDeviceType());
         }
 
-        protected override IOcrRecognizer CreateOcrRecognizer(InferenceSession session, SessionOptions options, IRecPostprocess postprocess, IRecPreprocess preprocess)
+        protected override IOcrRecognizer CreateOcrRecognizer(InferenceSession session, IRecPostprocess postprocess, IRecPreprocess preprocess)
         {
-            return new TextRecognizerIoBinding(session, options, postprocess, preprocess, OcrConfig, GetDeviceType());
+            return new TextRecognizerIoBinding(session, postprocess, preprocess, OcrConfig, GetDeviceType());
         }
 
         protected override DeviceType GetDeviceType()
