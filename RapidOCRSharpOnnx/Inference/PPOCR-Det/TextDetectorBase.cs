@@ -24,8 +24,8 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
         protected IDetPreprocess _detPreprocess;
         protected IDetPostprocess _detPostprocess;
 
-        public TextDetectorBase(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OcrConfig ocrConfig, DeviceType deviceType)
-            : base(session, options, ocrConfig, deviceType)
+        public TextDetectorBase(InferenceSession session, IDetPostprocess postprocess, IDetPreprocess preprocess, OcrConfig ocrConfig, DeviceType deviceType)
+            : base(session, ocrConfig, deviceType)
         {
             _detPreprocess = preprocess;
             _detPostprocess = postprocess;

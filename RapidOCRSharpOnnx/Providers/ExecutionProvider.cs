@@ -16,32 +16,49 @@ namespace RapidOCRSharpOnnx.Providers
 
         protected abstract DeviceType GetDeviceType();
 
-        protected abstract SessionOptions BuildSessionOptions();
+        protected abstract InferenceSession BuildInferenceSession(string modelPath, SessionOptions sessionOptions);
 
-        protected abstract IOcrDetector CreateOcrDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess);
+        protected abstract IOcrDetector CreateOcrDetector(InferenceSession session, IDetPostprocess postprocess, IDetPreprocess preprocess);
 
-        protected abstract IOcrClassifier CreateOcrClassifier(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess);
-        protected abstract IOcrRecognizer CreateOcrRecognizer(InferenceSession session, SessionOptions options, IRecPostprocess postprocess, IRecPreprocess preprocess);
+        protected abstract IOcrClassifier CreateOcrClassifier(InferenceSession session, IClsPostprocess postprocess, IClsPreprocess preprocess);
+        protected abstract IOcrRecognizer CreateOcrRecognizer(InferenceSession session, IRecPostprocess postprocess, IRecPreprocess preprocess);
 
         public OcrConfig OcrConfig { get; private set; }
 
-        public ExecutionProvider(OcrConfig ocrConfig)
+        private readonly SessionOptions _detOpt;
+        private readonly SessionOptions _clsOpt;
+        private readonly SessionOptions _recOpt;
+
+        public ExecutionProvider(OcrConfig ocrConfig, SessionOptions detOpt = null, SessionOptions clsOpt = null, SessionOptions recOpt = null)
         {
             OcrConfig = ocrConfig;
+            _detOpt = detOpt;
+            _clsOpt = clsOpt;
+            _recOpt = recOpt;
         }
+        protected SessionOptions BuildSessionOptionsBase(SessionOptions sessionOptions)
+        {
+            if (sessionOptions == null)
+            {
+                sessionOptions = new SessionOptions();
+                sessionOptions.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+                sessionOptions.EnableCpuMemArena = true;
+                sessionOptions.EnableMemoryPattern = false;
+            }
+            return sessionOptions;
 
+        }
         public IOcrDetector CreateDetector()
         {
             if (OcrConfig.DetectorConfig == null || string.IsNullOrWhiteSpace(OcrConfig.DetectorConfig.ModelPath))
             {
                 throw new ArgumentException("DetectorConfig or ModelPath is null or empty.");
             }
-            var options = BuildSessionOptions();
-            InferenceSession session = new InferenceSession(OcrConfig.DetectorConfig.ModelPath, options);
+            InferenceSession session = BuildInferenceSession(OcrConfig.DetectorConfig.ModelPath, _detOpt);
             var postprocess = new DetPostprocess(OcrConfig.DetectorConfig);
             var preprocess = new DetPreprocess(OcrConfig);
 
-            return CreateOcrDetector(session, options, postprocess, preprocess);
+            return CreateOcrDetector(session, postprocess, preprocess);
         }
 
         public IOcrClassifier CreateClassifier()
@@ -50,12 +67,11 @@ namespace RapidOCRSharpOnnx.Providers
             {
                 return null;
             }
-            var options = BuildSessionOptions();
-            InferenceSession session = new InferenceSession(OcrConfig.ClassifierConfig.ModelPath, options);
+            InferenceSession session = BuildInferenceSession(OcrConfig.ClassifierConfig.ModelPath, _clsOpt);
             var postprocess = new ClsPostprocess(OcrConfig.ClassifierConfig);
             var preprocess = new ClsPreprocess(OcrConfig);
 
-            return CreateOcrClassifier(session, options, postprocess, preprocess);
+            return CreateOcrClassifier(session, postprocess, preprocess);
         }
 
         public IOcrRecognizer CreateRecognizer()
@@ -64,12 +80,11 @@ namespace RapidOCRSharpOnnx.Providers
             {
                 throw new ArgumentException("RecognizerConfig or ModelPath is null or empty.");
             }
-            var options = BuildSessionOptions();
-            InferenceSession session = new InferenceSession(OcrConfig.RecognizerConfig.ModelPath, options);
+            InferenceSession session = BuildInferenceSession(OcrConfig.RecognizerConfig.ModelPath, _recOpt);
             var postprocess = new RecPostprocess(OcrConfig);
             var preprocess = new RecPreprocess(OcrConfig.RecognizerConfig);
 
-            return CreateOcrRecognizer(session, options, postprocess, preprocess);
+            return CreateOcrRecognizer(session, postprocess, preprocess);
         }
     }
 }

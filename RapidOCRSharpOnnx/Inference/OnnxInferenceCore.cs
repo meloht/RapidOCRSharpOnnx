@@ -13,7 +13,6 @@ namespace RapidOCRSharpOnnx.Inference
     public abstract class OnnxInferenceCore
     {
         protected readonly InferenceSession _session;
-        protected readonly SessionOptions _options;
         protected readonly RunOptions _runOptions;
         protected Stopwatch _stopwatch;
         protected readonly DeviceType _deviceType;
@@ -21,12 +20,11 @@ namespace RapidOCRSharpOnnx.Inference
         protected ParallelOptions _parallelOptions;
         protected abstract IDisposableReadOnlyCollection<OrtValue> InferenceRun(OrtValue inputOrtValue, PerfModel perf = null);
 
-        public OnnxInferenceCore(InferenceSession session, SessionOptions options, OcrConfig ocrConfig, DeviceType deviceType)
+        public OnnxInferenceCore(InferenceSession session, OcrConfig ocrConfig, DeviceType deviceType)
         {
             _stopwatch = new Stopwatch();
             _runOptions = new RunOptions();
             _session = session;
-            _options = options;
             _deviceType = deviceType;
             _ocrConfig = ocrConfig;
 
@@ -81,7 +79,6 @@ namespace RapidOCRSharpOnnx.Inference
         public void DisposeBase()
         {
             _session?.Dispose();
-            _options?.Dispose();
             _runOptions?.Dispose();
         }
     }

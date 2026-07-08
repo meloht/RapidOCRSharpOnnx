@@ -14,8 +14,8 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
         private OrtIoBinding _binding;
         private bool disposedValue;
 
-        public TextClassifierIoBinding(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OcrConfig ocrConfig, DeviceType deviceType)
-            : base(session, options, postprocess, preprocess, ocrConfig, deviceType)
+        public TextClassifierIoBinding(InferenceSession session, IClsPostprocess postprocess, IClsPreprocess preprocess, OcrConfig ocrConfig, DeviceType deviceType)
+            : base(session, postprocess, preprocess, ocrConfig, deviceType)
         {
             _binding = _session.CreateIoBinding();
         }

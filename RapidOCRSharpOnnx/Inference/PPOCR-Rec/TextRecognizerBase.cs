@@ -27,8 +27,8 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
         protected readonly string[] _charList;
 
 
-        public TextRecognizerBase(InferenceSession session, SessionOptions options, IRecPostprocess postprocess, IRecPreprocess preprocess, OcrConfig ocrConfig, DeviceType deviceType)
-            : base(session, options, ocrConfig, deviceType)
+        public TextRecognizerBase(InferenceSession session, IRecPostprocess postprocess, IRecPreprocess preprocess, OcrConfig ocrConfig, DeviceType deviceType)
+            : base(session, ocrConfig, deviceType)
         {
             _recPreprocess = preprocess;
             _recPostprocess = postprocess;

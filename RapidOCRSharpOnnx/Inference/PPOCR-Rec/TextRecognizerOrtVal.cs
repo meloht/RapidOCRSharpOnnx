@@ -14,8 +14,8 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Rec
     {
         private bool disposedValue;
 
-        public TextRecognizerOrtVal(InferenceSession session, SessionOptions options, IRecPostprocess postprocess, IRecPreprocess preprocess, OcrConfig ocrConfig, DeviceType deviceType)
-            : base(session, options, postprocess, preprocess, ocrConfig, deviceType)
+        public TextRecognizerOrtVal(InferenceSession session, IRecPostprocess postprocess, IRecPreprocess preprocess, OcrConfig ocrConfig, DeviceType deviceType)
+            : base(session, postprocess, preprocess, ocrConfig, deviceType)
         {
 
         }

@@ -38,8 +38,8 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Cls
         private int _inputShapeSize;
         private int _inputSizeInBytes;
 
-        public TextClassifierBase(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OcrConfig ocrConfig, DeviceType deviceType)
-            : base(session, options, ocrConfig, deviceType)
+        public TextClassifierBase(InferenceSession session, IClsPostprocess postprocess, IClsPreprocess preprocess, OcrConfig ocrConfig, DeviceType deviceType)
+            : base(session, ocrConfig, deviceType)
         {
             _clsPreprocess = preprocess;
             _clsPostprocess = postprocess;
