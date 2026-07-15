@@ -181,8 +181,8 @@ private static void TestImage()
 | [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)| 3.5.0 |python| paddlepaddle |
 | [RapidOCR](https://github.com/RapidAI/RapidOCR)| 3.8.1 |python| openvino |
 | [RapidOCRSharpOnnx](https://github.com/meloht/RapidOCRSharpOnnx)| 1.0.0 |C#|Intel.ML.OnnxRuntime.OpenVino|
-|[RapidOcrNet](https://github.com/BobLd/RapidOcrNet) | 3.0.0 | C# | Intel.ML.OnnxRuntime.OpenVino CPU  version 1.24.1 |
-|[PaddleOcrNet](https://github.com/BobLd/RapidOcrNet) | 1.0.0 | C# | Microsoft.ML.OnnxRuntime CPU  version 1.27.0 |
+|[RapidOcrNet](https://github.com/BobLd/RapidOcrNet) | 3.0.0 | C# | Intel.ML.OnnxRuntime.OpenVino  |
+|[PaddleOcrNet](https://github.com/BobLd/RapidOcrNet) | 1.0.0 | C# | Microsoft.ML.OnnxRuntime   |
 
 ## Performance Test PC 
 
