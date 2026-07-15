@@ -181,6 +181,8 @@ private static void TestImage()
 | [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)| 3.5.0 |python| paddlepaddle |
 | [RapidOCR](https://github.com/RapidAI/RapidOCR)| 3.8.1 |python| openvino |
 | [RapidOCRSharpOnnx](https://github.com/meloht/RapidOCRSharpOnnx)| 1.0.0 |C#|Intel.ML.OnnxRuntime.OpenVino|
+|[RapidOcrNet](https://github.com/BobLd/RapidOcrNet) | 3.0.0 | C# | Intel.ML.OnnxRuntime.OpenVino CPU  version 1.24.1 |
+|[PaddleOcrNet](https://github.com/BobLd/RapidOcrNet) | 1.0.0 | C# | Microsoft.ML.OnnxRuntime CPU  version 1.27.0 |
 
 ## Performance Test PC 
 
@@ -224,6 +226,18 @@ private static void TestImage()
 
 <img width="997" height="1093" alt="image" src="https://github.com/user-attachments/assets/79ab7dd5-0311-42ea-aa03-ed5695ff5fae" />
 
+## RapidOcrNet test result
+
+**CPU inference time:**  78.2841902 s
+
+<img width="1011" height="669" alt="image" src="https://github.com/user-attachments/assets/dd982a69-ea18-4b14-8002-44b1d5bbdaa6" />
+
+## PaddleOcrNet test result
+
+**CPU inference time:**  55.2006584 s
+
+<img width="1190" height="594" alt="image" src="https://github.com/user-attachments/assets/70178779-27ff-4cc5-8a20-e8d72c8ce49d" />
+
 
 ## Performance Test Result
 
@@ -232,7 +246,9 @@ private static void TestImage()
 | [PaddleSharp](https://github.com/sdcb/PaddleSharp)| 3.0.1 |Paddle Inference C API .NET binding|  Sdcb.PaddleInference.runtime.win64.mkl version 3.1.0.54 CPU|48.1769s |
 | [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)| 3.5.0 |python| paddlepaddle version 3.2.0 CPU|62.6685s |
 | [RapidOCR](https://github.com/RapidAI/RapidOCR)| 3.8.1 |python| openvino version 2026.1.0  21367 CPU|17.9634s|
-| [RapidOCRSharpOnnx](https://github.com/meloht/RapidOCRSharpOnnx)| 1.0.0 |C#|Intel.ML.OnnxRuntime.OpenVino CPU  version 1.24.1|9.2447s 
+| [RapidOCRSharpOnnx](https://github.com/meloht/RapidOCRSharpOnnx)| 1.0.0 |C#|Intel.ML.OnnxRuntime.OpenVino CPU  version 1.24.1|9.2447s |
+|[RapidOcrNet](https://github.com/BobLd/RapidOcrNet) | 3.0.0 | C# | Intel.ML.OnnxRuntime.OpenVino CPU  version 1.24.1| 78.2841s|
+|[PaddleOcrNet](https://github.com/BobLd/RapidOcrNet) | 1.0.0 | C# | Microsoft.ML.OnnxRuntime CPU  version 1.27.0 | 55.2006s|
 
 
 
