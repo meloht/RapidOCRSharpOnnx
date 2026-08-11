@@ -127,7 +127,7 @@ namespace RapidOCRSharpOnnx.Utils
             // ===== 左图（copy）=====
             var imgLeft = new SKBitmap(w, h);
             using var canvasLeft = new SKCanvas(imgLeft);
-            canvasLeft.DrawBitmap(image, 0, 0);
+            canvasLeft.DrawBitmap(image, 0, 0, SKSamplingOptions.Default);
 
             // ===== 右图（白底）=====
             var imgRight = new SKBitmap(w, h);
@@ -184,21 +184,21 @@ namespace RapidOCRSharpOnnx.Utils
             var blended = new SKBitmap(w, h);
             using (var canvas = new SKCanvas(blended))
             {
-                canvas.DrawBitmap(image, 0, 0);
+                canvas.DrawBitmap(image, 0, 0, SKSamplingOptions.Default);
 
                 using var paint = new SKPaint
                 {
                     Color = new SKColor(255, 255, 255, 128) // 0.5 alpha
                 };
-                canvas.DrawBitmap(imgLeft, 0, 0, paint);
+                canvas.DrawBitmap(imgLeft, 0, 0, SKSamplingOptions.Default, paint);
             }
 
             // ===== 拼接 =====
             var result = new SKBitmap(w * 2, h);
             using (var canvas = new SKCanvas(result))
             {
-                canvas.DrawBitmap(blended, 0, 0);
-                canvas.DrawBitmap(imgRight, w, 0);
+                canvas.DrawBitmap(blended, 0, 0, SKSamplingOptions.Default);
+                canvas.DrawBitmap(imgRight, w, 0, SKSamplingOptions.Default);
             }
 
             return result;
@@ -243,25 +243,23 @@ namespace RapidOCRSharpOnnx.Utils
                 foreach (char c in txt)
                 {
                     string s = c.ToString();
-                    canvas.DrawText(s, x + 3, curY, font, paint);
+                    canvas.DrawText(s, x + 3, curY, SKTextAlign.Left, font, paint);
                     curY += fontHeight;
                 }
             }
             else
             {
-                canvas.DrawText(txt, x, y, font, paint);
+                canvas.DrawText(txt, x, y, SKTextAlign.Left, font, paint);
             }
         }
 
         // ===== 构建多边形 =====
         private SKPath BuildPath(SKPoint[] pts)
         {
-            var path = new SKPath();
-            path.MoveTo(pts[0]);
-            for (int i = 1; i < pts.Length; i++)
-                path.LineTo(pts[i]);
-            path.Close();
-            return path;
+            using SKPathBuilder pathBuilder = new SKPathBuilder();
+            pathBuilder.AddPoly(pts);
+            pathBuilder.Close();
+            return pathBuilder.Detach(); ;
         }
 
         private float GetBoxHeight(Point2f[] box)

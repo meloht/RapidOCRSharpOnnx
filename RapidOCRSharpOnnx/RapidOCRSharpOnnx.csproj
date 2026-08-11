@@ -12,10 +12,10 @@
 		<PackageTags>ocr;paddle-ocr;paddleocr;PP-OCRv6;PP-OCRv5;PP-OCRv4;csharp;onnx;onnx-runtime;cross-platform;cpu;cuda;gpu;tensorrt;coreml;directml;openvino;computer-vision;text-recognition;text-detection</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Authors>meloht</Authors>
-		<Version>1.2.4</Version>
+		<Version>1.2.5</Version>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 		<Copyright>Copyright © meloht</Copyright>
-		<PackageReleaseNotes>RapidOCRSharpOnnx 1.2.4 upgrade Microsoft.ML.OnnxRuntime.Managed, OpenCvSharp4, SkiaSharp to their latest versions</PackageReleaseNotes>
+		<PackageReleaseNotes>RapidOCRSharpOnnx 1.2.5 upgrade Microsoft.ML.OnnxRuntime.Managed, SkiaSharp to their latest versions</PackageReleaseNotes>
 		<Description>a high performance, cross-platform PaddleOCR C# inference library base on OpenCV and ONNX Runtime</Description>
 		<PackageIcon>RapidOCRSharpOnnx_256.png</PackageIcon>
 	</PropertyGroup>
@@ -35,9 +35,9 @@
 
 	<ItemGroup>
 		<PackageReference Include="Clipper2" Version="2.0.0" />
-		<PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.27.1" />
+		<PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.28.0" />
 		<PackageReference Include="OpenCvSharp4" Version="4.13.0.20260627" />
-		<PackageReference Include="SkiaSharp" Version="4.150.1" />
+		<PackageReference Include="SkiaSharp" Version="4.151.1" />
 	</ItemGroup>
 
 	

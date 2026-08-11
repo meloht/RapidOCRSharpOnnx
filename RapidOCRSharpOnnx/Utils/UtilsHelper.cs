@@ -33,7 +33,7 @@ namespace RapidOCRSharpOnnx.Utils
                 LangRec.KOREAN => "korean.ttf",
                 LangRec.KA => "kannada.ttf",
                 LangRec.LATIN => "latin.ttf",
-                LangRec.TA => "kannada.ttf",
+                LangRec.TA => "tamil.ttf",
                 LangRec.TE => "telugu.ttf",
                 LangRec.TH => "th.ttf",
                 LangRec.EL => "el.ttf",
