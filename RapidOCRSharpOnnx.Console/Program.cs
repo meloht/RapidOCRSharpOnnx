@@ -38,9 +38,9 @@ namespace RapidOCRSharpOnnx.ConsoleApp
             //string imgPath = @"D:\code\model\xx.png";
             //string imgPath = @"D:\code\model\OCRTestImages\en_txt.png";
 
-            //string detectPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-OCRv5_det_mobile.onnx";
-            //string recogPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-OCRv5_rec_mobile.onnx";
-            //string clsPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-LCNet_x0_25_textline_ori_cls_mobile.onnx";
+            string detectPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-OCRv5_det_mobile.onnx";
+            string recogPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-OCRv5_rec_mobile.onnx";
+            string clsPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-LCNet_x0_25_textline_ori_cls_mobile.onnx";
 
             //string detectPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-OCRv4_det_mobile.onnx";
             //string recogPath = @"D:\code\RapidOCR-3.8.0\python\rapidocr\models\ch_PP-OCRv4_rec_mobile.onnx";
@@ -50,14 +50,14 @@ namespace RapidOCRSharpOnnx.ConsoleApp
             //string recogPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\PP-OCRv6_small_rec.onnx";
             //string clsPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-LCNet_x0_25_textline_ori_cls_mobile.onnx";
 
-            string detectPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\PP-OCRv6_tiny_det.onnx";
-            string recogPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\PP-OCRv6_tiny_rec.onnx";
-            string clsPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-LCNet_x0_25_textline_ori_cls_mobile.onnx";
+            //string detectPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\PP-OCRv6_tiny_det.onnx";
+            //string recogPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\PP-OCRv6_tiny_rec.onnx";
+            //string clsPath = @"D:\code\RapidOCRSharpOnnx\RapidOCRSharpOnnx.TestCommon\Models\ch_PP-LCNet_x0_25_textline_ori_cls_mobile.onnx";
 
             string font = @"C:\Windows\Fonts\msyh.ttc";
             using SessionOptions sessionOptions = new SessionOptions();
             sessionOptions.ExecutionMode = ExecutionMode.ORT_SEQUENTIAL;
-            using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderDirectML(new OcrConfig(detectPath, recogPath, font, OCRVersion.PPOCRV6Tiny, clsPath), _deviceId, detOpt: sessionOptions));
+            using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderDirectML(new OcrConfig(detectPath, recogPath, font, OCRVersion.PPOCRV5, clsPath), _deviceId, detOpt: sessionOptions));
 
             string savePath = $"res_{Path.GetFileName(imgPath)}";
             var result = ocr.RecognizeText(imgPath, savePath);
