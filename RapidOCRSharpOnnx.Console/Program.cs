@@ -58,7 +58,8 @@ namespace RapidOCRSharpOnnx.ConsoleApp
             using SessionOptions sessionOptions = new SessionOptions();
             sessionOptions.ExecutionMode = ExecutionMode.ORT_SEQUENTIAL;
             using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderDirectML(new OcrConfig(detectPath, recogPath, font, OCRVersion.PPOCRV5, clsPath), _deviceId, detOpt: sessionOptions));
-
+            ocr.Configuration.ReturnSingleCharBox = true;
+            ocr.Configuration.ReturnWordBox = true;
             string savePath = $"res_{Path.GetFileName(imgPath)}";
             var result = ocr.RecognizeText(imgPath, savePath);
             Console.WriteLine($"result: {result.ToString()}");

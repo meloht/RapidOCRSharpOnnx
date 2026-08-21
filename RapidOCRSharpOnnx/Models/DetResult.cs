@@ -14,6 +14,8 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
         public DisposableList<ImageIndex> ImgCropList { get; set; }
 
         public ResizeData ResizeData { get; set; }
+        public int OriginalHeight { get; set; }
+        public int OriginalWidth { get; set; }
 
         public DetResult(DetBoxItem[] detItems)
         {

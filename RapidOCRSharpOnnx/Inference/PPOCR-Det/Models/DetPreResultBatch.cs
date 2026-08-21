@@ -9,5 +9,5 @@ using System.Threading.Tasks;
 namespace RapidOCRSharpOnnx.Inference.PPOCR_Det.Models
 {
 
-    public record DetPreResultBatch(DetPreprocessData PreResult, Mat ResizedImg, ImagePathIndex ImagePathIndex);
+    public record DetPreResultBatch(DetPreprocessData PreResult, int OriginalHeight, int OriginalWidth, Mat ResizedImg, ImagePathIndex ImagePathIndex);
 }
