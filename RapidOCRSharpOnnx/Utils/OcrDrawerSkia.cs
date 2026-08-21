@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace RapidOCRSharpOnnx.Utils
 {
@@ -52,31 +53,36 @@ namespace RapidOCRSharpOnnx.Utils
 
 
 
-        public void DrawTextBlock(Mat image, string savePath, DetResult detResult, RecResult[] recResults)
+        public void DrawTextBlock(Mat image, string savePath, DetResult detResult, DetBoxItem[] wordResults)
         {
             using var input = Convert(image);
-            DrawTextBlockSKBitmap(input, savePath, detResult, recResults);
+            DrawTextBlockSKBitmap(input, savePath, detResult, wordResults);
         }
 
-        public void DrawTextBlock(string imagePath, string savePath, DetResult detResult, RecResult[] recResults)
+        public void DrawTextBlock(string imagePath, string savePath, DetResult detResult, DetBoxItem[] wordResults)
         {
             using var image = SKBitmap.Decode(imagePath);
-            DrawTextBlockSKBitmap(image, savePath, detResult, recResults);
+            DrawTextBlockSKBitmap(image, savePath, detResult, wordResults);
         }
-        private void DrawTextBlockSKBitmap(SKBitmap image, string savePath, DetResult detResult, RecResult[] recResults)
+
+        public DetBoxItem[] GetWordResultList(DetResult detResult, RecResult[] recResults) 
         {
-            MapBoxesToOriginal(detResult, image.Height, image.Width);
+            MapBoxesToOriginal(detResult, detResult.OriginalHeight, detResult.OriginalWidth);
             var croppedImgList = MapImgToOriginal(detResult.ImgCropList, detResult.ResizeData.RatioH, detResult.ResizeData.RatioW);
             var resCorp = _textCalRecBox.CalRecBoxes(croppedImgList, recResults, detResult.DetItems);
 
+            return resCorp.ToArray();
+        }
+        private void DrawTextBlockSKBitmap(SKBitmap image, string savePath, DetResult detResult, DetBoxItem[] wordResults)
+        {
             SKBitmap result = null;
-            if (resCorp == null || resCorp.Count == 0)
+            if (wordResults == null || wordResults.Length == 0)
             {
                 result = DrawOcrBoxTxt(image, detResult.DetItems);
             }
             else
             {
-                result = DrawOcrBoxTxt(image, resCorp);
+                result = DrawOcrBoxTxt(image, wordResults);
             }
             using var img = SKImage.FromBitmap(result);
             using var data = img.Encode(SKEncodedImageFormat.Jpeg, 100);

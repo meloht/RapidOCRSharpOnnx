@@ -36,6 +36,8 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
         {
             PerfModel perf = new PerfModel();
             _stopwatch.Restart();
+            int originalHeight = image.Height;
+            int originalWidth = image.Width;
             using Mat resizedImg = image.Clone();
             var data = _detPreprocess.Preprocess(image, resizedImg);
             IDisposableReadOnlyCollection<OrtValue> output = null;
@@ -69,6 +71,8 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                 {
                     using var ortValue = output[0];
                     var res = _detPostprocess.PostProcess(resizedImg, ortValue);
+                    res.OriginalHeight = originalHeight;
+                    res.OriginalWidth = originalWidth;
 
                     res.ResizeData = data.ResizeData;
                     result.Data = res;
@@ -130,6 +134,8 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
                      using var ortValue = output[0];
                      var res = _detPostprocess.PostProcess(item.ResizedImg, ortValue);
                      res.ResizeData = item.PreResult.ResizeData;
+                     res.OriginalHeight = item.OriginalHeight;
+                     res.OriginalWidth = item.OriginalWidth;
                      batchResult.DetResult = res;
                      //Console.WriteLine($"Detect batch WriteAsync {item.ImagePathIndex.Index} image count({res.ImgCropList.Count})");
                      await writer.WriteAsync(batchResult);

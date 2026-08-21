@@ -43,7 +43,7 @@ namespace RapidOCRSharpOnnx.Inference.PPOCR_Det
             using Mat img = Cv2.ImRead(imagePath.ImagePath);
             Mat resizedImg = img.Clone();
             var res = Preprocess(img, resizedImg);
-            return new DetPreResultBatch(res, resizedImg, imagePath);
+            return new DetPreResultBatch(res, img.Height, img.Width, resizedImg, imagePath);
         }
 
 

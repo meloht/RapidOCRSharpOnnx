@@ -117,6 +117,7 @@ namespace RapidOCRSharpOnnx.Inference
             await foreach (OcrBatchResult item in channelRecPre.Reader.ReadAllAsync())
             {
                 await _ocrRecognizer.BatchRecAsync(item);
+                SetReturnWordBox(item);
                 SaveImageWithTextBlocks(item, saveDir);
                 item.DetResult?.ImgCropList?.Dispose();
                 yield return item;
@@ -151,9 +152,14 @@ namespace RapidOCRSharpOnnx.Inference
                 }
                 result.TextBlocks = UtilsHelper.BuildTextBlocks(recResults.Data, _ocrConfig.RecognizerConfig.TextScore);
 
+                if (_ocrConfig.ReturnWordBox)
+                {
+                    result.WordResults = _ocrDrawerSkia.GetWordResultList(detResult.Data, recResults.Data);
+                }
+
                 if (!string.IsNullOrEmpty(savePath))
                 {
-                    _ocrDrawerSkia.DrawTextBlock(image, savePath, detResult.Data, recResults.Data);
+                    _ocrDrawerSkia.DrawTextBlock(image, savePath, detResult.Data, result.WordResults);
                 }
             }
 
@@ -186,9 +192,14 @@ namespace RapidOCRSharpOnnx.Inference
                 }
                 result.TextBlocks = UtilsHelper.BuildTextBlocks(recResults.Data, _ocrConfig.RecognizerConfig.TextScore);
 
+                if (_ocrConfig.ReturnWordBox)
+                {
+                    result.WordResults = _ocrDrawerSkia.GetWordResultList(detResult.Data, recResults.Data);
+                }
+
                 if (!string.IsNullOrEmpty(savePath))
                 {
-                    _ocrDrawerSkia.DrawTextBlock(image, savePath, detResult.Data, recResults.Data);
+                    _ocrDrawerSkia.DrawTextBlock(image, savePath, detResult.Data, result.WordResults);
                 }
             }
 
@@ -345,6 +356,7 @@ namespace RapidOCRSharpOnnx.Inference
             await foreach (OcrBatchResult item in channelRecPre.Reader.ReadAllAsync())
             {
                 await _ocrRecognizer.BatchParallelRecAsync(item);
+                SetReturnWordBox(item);
                 SaveImageWithTextBlocks(item, saveDir);
                 item.DetResult?.ImgCropList?.Dispose();
                 yield return item;
@@ -357,12 +369,24 @@ namespace RapidOCRSharpOnnx.Inference
 
         private void SaveDrawImage(string saveDir, OcrBatchResult[] batchResults)
         {
+            foreach (var item in batchResults)
+            {
+                SetReturnWordBox(item);
+            }
             if (CheckSaveDir(saveDir))
             {
                 foreach (var item in batchResults)
                 {
                     SaveImageWithTextBlocks(item, saveDir);
                 }
+            }
+        }
+
+        private void SetReturnWordBox(OcrBatchResult result)
+        {
+            if (_ocrConfig.ReturnWordBox)
+            {
+                result.WordResults = _ocrDrawerSkia.GetWordResultList(result.DetResult, result.RecResult);
             }
         }
 
@@ -373,7 +397,7 @@ namespace RapidOCRSharpOnnx.Inference
                 string resPath = $"res_{Path.GetFileName(item.ImagePath)}";
                 string savePath = Path.Combine(saveDir, resPath);
 
-                _ocrDrawerSkia.DrawTextBlock(item.ImagePath, savePath, item.DetResult, item.RecResult);
+                _ocrDrawerSkia.DrawTextBlock(item.ImagePath, savePath, item.DetResult, item.WordResults);
             }
         }
         private bool CheckSaveDir(string saveDir)

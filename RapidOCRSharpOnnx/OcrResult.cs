@@ -1,4 +1,5 @@
 ﻿using RapidOCRSharpOnnx.Inference.PPOCR_Det;
+using RapidOCRSharpOnnx.Inference.PPOCR_Det.Models;
 using RapidOCRSharpOnnx.Models;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,8 @@ namespace RapidOCRSharpOnnx
         public ResultPerf<ClsResult[]> ClsResult { get; set; }
 
         public ResultPerf<RecResult[]> RecResult { get; set; }
+
+        public DetBoxItem[] WordResults { get; set; }
 
         public override string ToString()
         {

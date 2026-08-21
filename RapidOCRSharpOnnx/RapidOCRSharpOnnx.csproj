@@ -15,7 +15,7 @@
 		<Version>1.2.5</Version>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 		<Copyright>Copyright © meloht</Copyright>
-		<PackageReleaseNotes>RapidOCRSharpOnnx 1.2.5 upgrade Microsoft.ML.OnnxRuntime.Managed, SkiaSharp to their latest versions</PackageReleaseNotes>
+		<PackageReleaseNotes>RapidOCRSharpOnnx 1.3.0 add WordResults in return result(OcrResult, OcrBatchResult)</PackageReleaseNotes>
 		<Description>a high performance, cross-platform PaddleOCR C# inference library base on OpenCV and ONNX Runtime</Description>
 		<PackageIcon>RapidOCRSharpOnnx_256.png</PackageIcon>
 	</PropertyGroup>
