@@ -24,7 +24,7 @@ Referring to the [RapidOCR](https://github.com/RapidAI/RapidOCR) project, it is 
  - **Execution Provider** CPU, CUDA / TensorRT, OpenVINO, CoreML, DirectML
  - **Batch processing images** Preprocess and Inference are executed asynchronously  with Producer/Consumer pattern
  - **High Performance Inference** Memory reuse, GPU Inference with I/O Binding
- - **Image Processing** [OpenCvSharp4](https://github.com/shimat/opencvsharp)
+ - **Image Processing** [OpenCvSharp5](https://github.com/shimat/opencvsharp)
  - **Draw Result Image** [SkiaSharp](https://github.com/mono/SkiaSharp)
  - **Inference Engine** [ONNX Runtime](https://github.com/microsoft/onnxruntime) is a cross-platform inference and training machine-learning accelerator.
  - **PP-OCR Versions** Includes support for: [PP-OCRv6](https://www.paddleocr.ai/main/en/version3.x/algorithm/PP-OCRv6/PP-OCRv6.html), [PP-OCRv5](https://www.paddleocr.ai/v3.0.0/version3.x/pipeline_usage/OCR.html), [PP-OCRv4](https://www.paddleocr.ai/v3.0.0/version3.x/pipeline_usage/PP-ChatOCRv4.html)
@@ -59,7 +59,7 @@ Install Nuget packages `RapidOCRSharpOnnx`, `OnnxRuntime`, `OpenCvSharp4.runtime
 #### CPU Inference
 ```shell
 dotnet add package RapidOCRSharpOnnx
-dotnet add package OpenCvSharp4.runtime.win
+dotnet add package OpenCvSharp5.runtime.win/linux
 dotnet add package Microsoft.ML.OnnxRuntime
 ```
 
@@ -70,7 +70,7 @@ using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderCPU(new OcrConf
 #### CoreML Inference
 ```shell
 dotnet add package RapidOCRSharpOnnx
-dotnet add package OpenCvSharp4.runtime.osx.10.15-x64
+dotnet add package OpenCvSharp5.runtime.osx.x64/arm64
 dotnet add package Microsoft.ML.OnnxRuntime
 ```
 
@@ -81,8 +81,8 @@ using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderCoreML(new OcrC
 #### CUDA/TensorRT Inference
 ```shell
 dotnet add package RapidOCRSharpOnnx
-dotnet add package OpenCvSharp4.runtime.win
-dotnet add package Microsoft.ML.OnnxRuntime.Gpu.Windows
+dotnet add package OpenCvSharp5.runtime.win/linux
+dotnet add package Microsoft.ML.OnnxRuntime.Gpu.Windows/linux
 ```
 
 ```csharp
@@ -93,7 +93,7 @@ using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderTensorRT(new Oc
 #### DirectML Inference
 ```shell
 dotnet add package RapidOCRSharpOnnx
-dotnet add package OpenCvSharp4.runtime.win
+dotnet add package OpenCvSharp5.runtime.win
 dotnet add package Microsoft.ML.OnnxRuntime.DirectML
 ```
 
@@ -104,7 +104,7 @@ using RapidOCRSharp ocr = new RapidOCRSharp(new ExecutionProviderDirectML(new Oc
 #### OpenVINO Inference
 ```shell
 dotnet add package RapidOCRSharpOnnx
-dotnet add package OpenCvSharp4.runtime.win
+dotnet add package OpenCvSharp5.runtime.win/linux
 dotnet add package Intel.ML.OnnxRuntime.OpenVino
 ```
 
